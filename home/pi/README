@@ -1,0 +1,29 @@
+PiCroft development image, v0.5
+
+This image provides a quick getting-started to Mycroft.  This is a Raspian
+Jessie Lite with Mycroft pre-installed and configured to operate with:
+  * Headphones or speaker plugged into the Pi's headphone jack
+  * Generic USB microphone
+
+If you wish audio to go out the HDMI -- e.g. if you have your Pi plugged in
+to a TV and you want to use it's speaker -- you can edit the 
+startup_auto_run.sh script and change the amixer to use '2' instead of '1'.
+
+If you wish to use Wifi instead of an ethernet connection, you can run the
+configure_wifi.sh script.  This will start the Mycroft wifi setup process.
+You only need to do this once.
+
+
+Additional commands you can use from the command line:
+   cli - Starts a command line Mycroft client.  Just type instead of talking
+
+   say - One-shot method of "saying" something to Mycroft
+
+   view_log - Continuously displays the log of what Mycroft is hearing and
+              saying to you.
+
+   test_microphone - Performs a brief recording and playback to test that
+              your equipment is functioning correctly
+
+   msm install <repo> - Install a skill from Github, e.g.
+              msm install https://github.com/ethanaward/demo_skill.git

@@ -1,0 +1,2 @@
+#!/bin/bash
+python ~/say_command.py "$@"
