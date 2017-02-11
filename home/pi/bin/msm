@@ -28,7 +28,7 @@ mycroft_virtualenv=~/.virtualenvs/mycroft/bin/activate
 
 echo "#######  Mycroft Skill Manager #######"
 
-function help {
+function help() {
 	echo "msm: Mycroft Skill Manager"
 	echo "     Copyright (c) 2017 Mycroft AI, Inc.  All rights reserved."
 	echo "usage: msm install <repository>"
@@ -37,7 +37,7 @@ function help {
 	echo "example: msm install https://github.com/ethanaward/demo_skill.git"
 }
 
-function install {
+function install() {
 	current=`pwd`
 	git_name=`echo "$2" | sed 's/.*\///'`
 	name=`echo "$git_name" | sed 's/.git//'`
@@ -60,8 +60,15 @@ function install {
 	echo "Skill installed!"
 }
 
+function list() {
+	curl -s "https://raw.githubusercontent.com/MycroftAI/mycroft-skills/master/.gitmodules" | grep 'submodule "' | sed 's/\[submodule "//g'| sed 's/"\]//g'
+}
+
 if [ "$1" = "install" ]; then
         install $*
+elif [ "$1" = "list" ]; then
+	echo -e "Searching...\n"
+	list 
 else
         help
 fi
