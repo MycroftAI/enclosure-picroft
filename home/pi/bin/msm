@@ -31,35 +31,41 @@ echo "#######  Mycroft Skill Manager #######"
 function help() {
 	echo "msm: Mycroft Skill Manager"
 	echo -e "     Copyright (c) 2017 Mycroft AI, Inc.  All rights reserved.\n"
-	echo "usage: msm install <repository>"
+	echo "usage: msm install <repository> or <name>"
 	echo "     Installs the given Skill into the /opt/mycroft/skills directory"
 	echo "     where <repository> is the address of the skill in Github."
 	echo -e "example: msm install https://github.com/ethanaward/demo_skill.git\n"
-	echo "usage: msm list"
-	echo "     List all skills on mycroft skills repository"
 }
 
 function install() {
 	current=`pwd`
-	git_name=`echo "$2" | sed 's/.*\///'`
-	name=`echo "$git_name" | sed 's/.git//'`
         cd $mycroft_skill_folder
-	echo "Cloning repository"
-        sudo git clone $2 >> /dev/null
+	if [ -z "$2" ]; then
+		echo "You must pass the git url or skill name"
+		exit 1
+	fi
+	if [[ "$2" == "git@"* || "$2" == "https://"* || "$2" == "http://"* ]]; then
+		repo=$2
+	else
+		skill=`curl -s "https://raw.githubusercontent.com/MycroftAI/mycroft-skills/master/.gitmodules" | grep 'url =' | sed 's/url\s=\s//g'| sed 's/[[:space:]]//g' | grep -i "$2"`
+		if [[ $skill ==  *$'\n'* ]]; then
+			echo -e "You search have multiple choices\n\n$skill"
+			exit 2
+		else
+			repo=$skill
+		fi 
+	fi
+	git_name=`echo "$repo" | sed 's/.*\///'`
+	name=`echo "$git_name" | sed 's/.git//'`
+        echo "Cloning repository"
+        sudo git clone $repo >> /dev/null
         cd $name
-	# echo "Sourcing env"
-        # source	$mycroft_virtualenv 
-        # if [ -f "requirements.sh" ]; then
-	# 	echo "Installing os requirements"
-        # 	./requirements.sh
-        # fi
-        # if [ -f "requirements.txt" ]; then
-	# 	echo "Installing libraries requirements"
-        # 	pip install -r requirements.txt
-        # fi 
-        # echo "Please restart Mycroft to activate this skill! :D"
-	sudo service mycroft-skills restart
-	echo "Skill installed!"
+         if [ -f "requirements.txt" ]; then
+         	echo "Installing libraries requirements"
+        	pip install -r requirements.txt
+        fi 
+        sudo service mycroft-skills restart
+        echo "Skill installed!"
 }
 
 function list() {
