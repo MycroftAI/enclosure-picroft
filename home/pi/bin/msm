@@ -51,7 +51,7 @@ function install() {
 		skill=`echo "$skill_list" | grep -n 'submodule' | sed 's/[[:space:]]//g' | sed 's/\[submodule"//g' | sed 's/"\]//g' | grep -i "$2"`
 		git_line=`echo "$skill" | sed 's/\:.*//'`
 		if [[ $skill ==  *$'\n'* ]]; then
-			echo -e "You search have multiple choices\n\n$skill" | sed 's/.*://g'
+			echo -e "Your search have multiple choices\n\n$skill" | sed 's/.*://g'
 			exit 2
 		else
 			repo_line=$(($git_line + 2))
