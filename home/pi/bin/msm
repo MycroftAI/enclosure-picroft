@@ -48,8 +48,14 @@ function install() {
 		repo=$2
 	else
 		skill_list="`curl -s "https://raw.githubusercontent.com/MycroftAI/mycroft-skills/master/.gitmodules"`"
-		skill=`echo "$skill_list" | grep -n 'submodule' | sed 's/[[:space:]]//g' | sed 's/\[submodule"//g' | sed 's/"\]//g' | grep -i "$2"`
+		skills=`echo "$skill_list" | grep -n 'submodule' | sed 's/[[:space:]]//g' | sed 's/\[submodule"//g' | sed 's/"\]//g'`
+		exact_match=`echo "$skills" | grep -i ".*:$2$"`
+		skill=`echo "$skills" | grep -i ".*:$2"`
+		if [ ! -z $exact_match ]; then
+			skill=$exact_match
+		fi
 		git_line=`echo "$skill" | sed 's/\:.*//'`
+
 		if [[ $skill ==  *$'\n'* ]]; then
 			echo -e "Your search has multiple choices\n\n$skill" | sed 's/.*://g'
 			exit 2
