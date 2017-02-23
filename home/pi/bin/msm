@@ -38,7 +38,6 @@ function help() {
 }
 
 function install() {
-	current=`pwd`
         cd $mycroft_skill_folder
 	if [ -z "$2" ]; then
 		echo "You must pass the git url or skill name"
@@ -77,6 +76,17 @@ function install() {
         echo "Skill installed!"
 }
 
+function update() {
+        cd $mycroft_skill_folder
+	for d in *; do
+		if git -C "$d" rev-parse --git-dir > /dev/null 2>&1; then
+			cd $d
+			sudo git reset --hard origin/master 
+			cd ..
+		fi
+	done
+}
+
 function list() {
 	curl -s "https://raw.githubusercontent.com/MycroftAI/mycroft-skills/master/.gitmodules" | grep 'submodule "' | sed 's/\[submodule "//g'| sed 's/"\]//g'
 }
@@ -86,6 +96,8 @@ if [ "$1" = "install" ]; then
 elif [ "$1" = "list" ]; then
 	echo -e "Searching...\n"
 	list 
+elif [ "$1" = "update" ]; then
+	update 
 else
         help
 fi
