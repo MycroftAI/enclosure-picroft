@@ -32,4 +32,8 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
 * [0.5.1](https://rebrand.ly/Picroft-0_5_1) - Fixed several audio issues with 0.5 image
 * 0.5 - Original image, connecting to Cerberus backend
 
+# Help and more info
+Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
+
+There's also the general [Documentation](https://docs.mycroft.ai/).
 
