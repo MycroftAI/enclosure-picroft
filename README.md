@@ -3,6 +3,10 @@ The Picroft project is an enclosure for a stock Raspberry Pi connected to a spea
 
 
  [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 0.8 image](https://rebrand.ly/Picroft-0_8)
+ 
+
+SHA256 checksum for the PiCroft_v0.8b_Raspian_JessieLite_2017-01-26.zip image:
+ce316e13f53c261ab22a6856c397170d9dc3dd3bf4c3a5b49e10dcf668ed2c11
 
 
 # Requirements
@@ -28,4 +32,8 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
 * [0.5.1](https://rebrand.ly/Picroft-0_5_1) - Fixed several audio issues with 0.5 image
 * 0.5 - Original image, connecting to Cerberus backend
 
+# Help and more info
+Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
+
+There's also the general [Documentation](https://docs.mycroft.ai/).
 
