@@ -21,4 +21,10 @@ wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/hom
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/speak
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/test_microphone
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/view_log
+chmod +x *
 
+# Cleanup post-upgrades
+if [ -f say ]
+then
+   rm say
+fi
