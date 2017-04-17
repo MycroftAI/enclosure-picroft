@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# This script invokes Text to Speech on the given text
+mimic -voice ap -t "$@"
+

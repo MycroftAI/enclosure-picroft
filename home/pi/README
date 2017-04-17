@@ -1,24 +1,33 @@
-PiCroft development image, v0.5
+Picroft development image
+=========================
 
 This image provides a quick getting-started to Mycroft.  This is a Raspian
-Jessie Lite with Mycroft pre-installed and configured to operate with:
+Jessie Lite image with Mycroft pre-installed and configured to operate with:
   * Headphones or speaker plugged into the Pi's headphone jack
-  * Generic USB microphone
+  * USB microphone
 
 If you wish audio to go out the HDMI -- e.g. if you have your Pi plugged in
-to a TV and you want to use it's speaker -- you can edit the 
-startup_auto_run.sh script and change the amixer to use '2' instead of '1'.
+to a TV and you want to use its speaker -- you can edit the auto_run.sh
+script and follow the instructions give there.
 
 If you wish to use Wifi instead of an ethernet connection, you can run the
 configure_wifi.sh script.  This will start the Mycroft wifi setup process.
-You only need to do this once.
+You only need to do this once, and it begins automatically on boot if no
+network is detected.
+
+Picroft will automatically check for updates daily and will also check for 
+updates on each reboot.
 
 
 Additional commands you can use from the command line:
-   cli - Starts a command line Mycroft client.  Just type instead of talking
+   cli - Starts a command line Mycroft client.  Just type instead of talking,
+              watch log output, see microphone levels, etc.
 
-   say - One-shot method of "saying" something to Mycroft
+   say_to_mycroft - One-shot method of "saying" something to Mycroft from the
+              command line
 
+   speak - Perfrom Text to Speech from the command line
+   
    view_log - Continuously displays the log of what Mycroft is hearing and
               saying to you.
 

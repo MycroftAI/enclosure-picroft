@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# This script allows sending commands to Mycroft via the command line
+python ~/say_command.py "$@"
