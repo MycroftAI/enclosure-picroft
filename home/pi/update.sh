@@ -7,16 +7,18 @@
 # at github.com/MycroftAI/enclosure-picroft
 
 cd ~
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/auto_run.sh
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/README
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/configure_wifi.sh
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/messagebus_emit.py
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/say_command.py
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/.bashrc
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/README
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/auto_run.sh
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/configure_wifi.sh
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/messagebus_emit.py
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/say_command.py
 
 cd ~/bin
-wget https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/cli
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/say
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/test_microphone
-wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/view_log
+wget -N https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/cli
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/say_to_mycroft
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/speak
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/test_microphone
+wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/view_log
 

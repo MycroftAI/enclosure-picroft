@@ -23,7 +23,7 @@ amixer set Master 75% # set volume to a reasonable level
 #  sudo amixer cset numid=3 "2"  # audio out the HDMI port (e.g. TV speakers)
 if [ -f custom_setup.sh ]
 then
-    source custom_setup.sh
+   source custom_setup.sh
 fi
 
 ######################
@@ -40,9 +40,6 @@ echo "***********************************************************************"
 
 if [ "$SSH_CLIENT" == "" ]
 then
-	echo "skipping..."
-else
-# then
    # running at the local console (e.g. plugged into the HDMI output)
 
    # Upgrade if connected to the internet and one is available
@@ -51,24 +48,29 @@ else
    then
       echo "Checking for updates to Picroft environment"
       cd /tmp
-      wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/version
+      wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/version
       if [ $? -eq 0 ]
       then
-          cmp /tmp/version ~/version
-          if  [ $? -eq 1 ]
-          then
-              # Versions don't match...update needed
-              echo "Updating Picroft scripts!"
-	      speak "Updating Picroft, please hold on."
-              wget https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/update.sh
-              source update.sh
-              cp /tmp/version ~/version
+         if [ ! -f ~/version ]
+         then
+            echo "unknown" > ~/version
+         fi
 
-              # restart
-              echo "Rebooting now"
-	      speak "Update complete, restarting."
-              sudo reboot now
-          fi
+         cmp /tmp/version ~/version
+         if  [ $? -eq 1 ]
+         then
+            # Versions don't match...update needed
+            echo "Updating Picroft scripts!"
+            speak "Updating Picroft, please hold on."
+            wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/update.sh
+            source update.sh
+            cp /tmp/version ~/version
+
+            # restart
+            echo "Rebooting now"
+            speak "Update complete, restarting."
+            sudo reboot now
+         fi
       fi
 
       echo "Checking for updates to Mycroft-core..."
@@ -97,7 +99,7 @@ else
       # Wait for an internet connection -- either the user finished Wifi Setup or
       # plugged in a network cable.
       while ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1 ; do
-          sleep 1
+         sleep 1
       done
 
       echo "Internet connection detected!"
@@ -111,9 +113,9 @@ else
    IDENTITY_FILE="/home/mycroft/.mycroft/identity/identity2.json"
    if [ -f $IDENTITY_FILE ]
    then
-       IDENTITY_FILE_SIZE=$(stat -c%s $IDENTITY_FILE)
+      IDENTITY_FILE_SIZE=$(stat -c%s $IDENTITY_FILE)
    else
-       IDENTITY_FILE_SIZE=0
+      IDENTITY_FILE_SIZE=0
    fi
 
    echo ""
@@ -130,10 +132,10 @@ else
       echo "'Hey Mycroft' to activate it. Try saying 'Hey Mycroft, what time is it'"
       echo "to test the system."
    fi
-#else
-#   # running from a SSH session
-#   echo "Remote session"
-#fi
+else
+   # running from a SSH session
+   echo "Remote session"
+fi
 
 
 sleep 2
