@@ -40,7 +40,7 @@ There's also the general [Documentation](https://docs.mycroft.ai/).
 
 Typically the USB audio should be connected to hwplug:1,0 but to verify run the following:
 
-aplay -L
+`aplay -L`
 
 Find the hwplug output for the device you want to use, take this and update the /etc/mycroft/mycroft.conf file accordingly:
 
