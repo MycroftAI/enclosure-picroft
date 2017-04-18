@@ -1,37 +1,17 @@
 #!/bin/bash
 ##########################################################################
-# startup_auto_run.sh
+# auto_run.sh
 ##########################################################################
 # This script is executed by the .bashrc every time someone logs in to the
 # system.
-
-# Make sure the output is being output via the correct device.  You can
-# change this to match your usage, the default is to output from the
-# headphone jack.
-#
-sudo amixer cset numid=3 "1"   # audio out the analog speaker/headphone jack
-#sudo amixer cset numid=3 "2"  # audio out the HDMI port (e.g. TV speakers)
-
-amixer set Master 75% # set volume to a reasonable level
-
-
-# Do not edit this script (it may be replaced later by the update process),
-# but you can edit and customize the audio_setup.sh script that gets called
-# below.  For example, if you want to use HDMI audio, create your own
-# custom_setup.sh that contains:
-#  #!/bin/bash
-#  sudo amixer cset numid=3 "2"  # audio out the HDMI port (e.g. TV speakers)
-if [ -f custom_setup.sh ]
-then
-   source custom_setup.sh
-fi
 
 ######################
 # Comamnd line helpers
 export PATH="$HOME/bin:$PATH"
 
+echo ""
 echo "***********************************************************************"
-echo "** Picroft development image, v" $(<version)
+echo "** Picroft development image, ver" $(<version)
 echo "***********************************************************************"
 echo "This image is designed to make getting started with Mycroft easy.  It"
 echo "is pre-configured for a Raspberry Pi that has a speaker or headphones"
@@ -41,6 +21,23 @@ echo "***********************************************************************"
 if [ "$SSH_CLIENT" == "" ]
 then
    # running at the local console (e.g. plugged into the HDMI output)
+   
+   # Make sure the audio is being output via the correct device.  You can
+   # change this to match your usage, the default is to output from the
+   # headphone jack.
+   #
+   sudo amixer cset numid=3 "1"   # audio out the analog speaker/headphone jack
+   amixer set Master 75% # set volume to a reasonable level
+
+   # Do not edit this script (it may be replaced later by the update process),
+   # but you can edit and customize the custom_setup.sh script.  You can use that
+   # to change audio config and default volume or to initialize some other IoT
+   # device.
+   #
+   if [ -f custom_setup.sh ]
+   then
+      source custom_setup.sh
+   fi
 
    # Upgrade if connected to the internet and one is available
    ping -q -c 1 -W 1 google.com >/dev/null 2>&1

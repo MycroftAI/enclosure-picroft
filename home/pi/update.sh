@@ -23,8 +23,10 @@ wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/hom
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/view_log
 chmod +x *
 
-# Cleanup post-upgrades
+# Cleanup post-upgrade
 if [ -f say ]
 then
    rm say
 fi
+
+cd ~
