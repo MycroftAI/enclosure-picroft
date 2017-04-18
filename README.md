@@ -46,5 +46,6 @@ Find the hwplug output for the device you want to use, take this and update the 
 
 "play_wav_cmdline": "aplay -Dhw:0,0 %1" this line now becomes "play_wav_cmdline": "aplay -Dplughw:1,0 %1"
 
+You can now run ./auto_run.sh to start the program back up and test and ensure the output comes through the USB speakers.
 
 
