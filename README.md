@@ -34,6 +34,18 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
 
 # Help and more info
 Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
-
 There's also the general [Documentation](https://docs.mycroft.ai/).
+
+# Using USB Audio as Output
+
+Typically the USB audio should be connected to hwplug:1,0 but to verify run the following:
+
+`aplay -L`
+
+Find the hwplug output for the device you want to use, take this and update the /etc/mycroft/mycroft.conf file accordingly:
+
+"play_wav_cmdline": "aplay -Dhw:0,0 %1" this line now becomes "play_wav_cmdline": "aplay -Dplughw:1,0 %1"
+
+You can now run ./auto_run.sh to start the program back up and test and ensure the output comes through the USB speakers.
+
 
