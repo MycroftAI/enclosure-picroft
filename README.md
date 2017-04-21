@@ -36,9 +36,9 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
 Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
 There's also the general [Documentation](https://docs.mycroft.ai/).
 
-# There are two scripts run on startu
-* audio_setup.sh configures your specific audio setup
-* custom_setup.sh is a stub meant to initialize any other IoT devices or services you might need like a DLNA server or syslog
+# There are two scripts run on startup
+* `audio_setup.sh` configures your specific audio setup.
+* `custom_setup.sh` is a stub meant to initialize any other IoT devices or services you might need like a DLNA server or syslog for example.
 
 # Using USB Audio as Output
 
