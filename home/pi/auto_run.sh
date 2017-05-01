@@ -23,7 +23,7 @@ then
    # running at the local console (e.g. plugged into the HDMI output)
 
    # Make sure the audio is being output via the correct device.  You can
-   # change this to match your usage in audio_setup.sah, the default is
+   # change this to match your usage in audio_setup.sh, the default is
    # to output from the headphone jack.
    #
    sudo amixer cset numid=3 "1"   # audio out the analog speaker/headphone jack
