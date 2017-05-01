@@ -21,19 +21,26 @@ echo "***********************************************************************"
 if [ "$SSH_CLIENT" == "" ]
 then
    # running at the local console (e.g. plugged into the HDMI output)
-   
+
    # Make sure the audio is being output via the correct device.  You can
-   # change this to match your usage, the default is to output from the
-   # headphone jack.
+   # change this to match your usage in audio_setup.sh, the default is
+   # to output from the headphone jack.
    #
    sudo amixer cset numid=3 "1"   # audio out the analog speaker/headphone jack
    amixer set Master 75% # set volume to a reasonable level
 
    # Do not edit this script (it may be replaced later by the update process),
-   # but you can edit and customize the custom_setup.sh script.  You can use that
-   # to change audio config and default volume or to initialize some other IoT
-   # device.
+   # but you can edit and customize the audio_setup.sh and custom_setup.sh
+   # script.  Use the audio_setup.sh to change audio output configuration and
+   # default volume; use custom_setup.sh to initialize any other IoT devices.
    #
+   # Check for custom audio setup
+   if [ -f audio_setup.sh ]
+   then
+      source audio_setup.sh
+   fi
+
+   # Check for custom Device setup
    if [ -f custom_setup.sh ]
    then
       source custom_setup.sh
