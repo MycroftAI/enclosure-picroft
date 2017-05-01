@@ -31,7 +31,7 @@ then
 
    # Do not edit this script (it may be replaced later by the update process),
    # but you can edit and customize the audio_setup.sh and custom_setup.sh
-   # sscript.  Use the audio_setup.sh to change audio output configuration and
+   # script.  Use the audio_setup.sh to change audio output configuration and
    # default volume; use custom_setup.sh to initialize any other IoT devices.
    #
    # Check for custom audio setup
