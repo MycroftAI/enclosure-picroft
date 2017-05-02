@@ -15,5 +15,24 @@ read -s -p "Password: " password
 #Stripping the (stdin)= part of hash
 hash_pw=$(echo -n $password| iconv -t utf16le | openssl md4)
 hash_pw_updated=$(echo -e $hash_pw | sed -r 's/^.{9}//')
+
 #Setup Config in Supplicant File
-echo -e "network={\nssid=\"$ssid_network\"\npriority=1\nproto=RSN\nkey_mgmt=WPA-EAP\npairwise=CCMP\nauth_alg=OPEN\neap=PEAP\nidentity=\"$username\"\npassword=hash:$hash_pw_updated\nphase1=\"peaplabel=0\"\nphase2=\"auth=MSCHAPV2\"\n}" >> $CONFIG_FILE && echo "SSID $ssid_network has been setup successfully., please reboot and your wifi will auto-connect. Perform sudo reboot, goodbye."
+echo -e "network={\nssid=\"$ssid_network\"\npriority=1\nproto=RSN\nkey_mgmt=WPA-EAP\npairwise=CCMP\nauth_alg=OPEN\neap=PEAP\nidentity=\"$username\"\npassword=hash:$hash_pw_updated\nphase1=\"peaplabel=0\"\nphase2=\"auth=MSCHAPV2\"\n}" >> $CONFIG_FILE && echo "SSID $ssid_network has been setup successfully."
+
+# Function for yes or no
+function ask_yes_or_no() {
+    read -p "$1 ([y]es or [N]o): "
+    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
+        y|yes) echo "yes" ;;
+        *)     echo "no" ;;
+    esac
+}
+
+#Prompting to reboot, exit if they say no.
+if [[ "no" == $(ask_yes_or_no "Do you want to reboot now?") || \
+      "no" == $(ask_yes_or_no "Are you *really* sure you want to reboot?") ]]
+then
+    echo "Skipped."
+    exit 0
+fi
+reboot
