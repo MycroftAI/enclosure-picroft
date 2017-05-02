@@ -16,4 +16,4 @@ read -s -p "Password: " password
 hash_pw=$(echo -n $password| iconv -t utf16le | openssl md4)
 hash_pw_updated=$(echo -e $hash_pw | sed -r 's/^.{9}//')
 #Setup Config in Supplicant File
-echo -e "network={\nssid=\"$ssid_network\"\npriority=1\nproto=RSN\nkey_mgmt=WPA-EAP\npairwise=CCMP\nauth_alg=OPEN\neap=PEAP\nidentity=\"$username\"\npassword=hash:$hash_pw_updated\nphase1=\"peaplabel=0\"\nphase2=\"auth=MSCHAPV2\"\n}" >> $CONFIG_FILE && echo "SSID $ssid_network has been setup successfully."
+echo -e "network={\nssid=\"$ssid_network\"\npriority=1\nproto=RSN\nkey_mgmt=WPA-EAP\npairwise=CCMP\nauth_alg=OPEN\neap=PEAP\nidentity=\"$username\"\npassword=hash:$hash_pw_updated\nphase1=\"peaplabel=0\"\nphase2=\"auth=MSCHAPV2\"\n}" >> $CONFIG_FILE && echo "SSID $ssid_network has been setup successfully., please reboot and your wifi will auto-connect. Perform sudo reboot, goodbye."
