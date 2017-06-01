@@ -16,6 +16,17 @@ ce316e13f53c261ab22a6856c397170d9dc3dd3bf4c3a5b49e10dcf668ed2c11
 * Any analog speaker
 * USB Microphone.  Tested with CM108-based microphones.
 
+# Installation
+
+[Official Raspberry Pi Image Installation Instuctions](https://www.raspberrypi.org/documentation/installation/installing-images/)
+
+[Etcher](https://etcher.io/) Cross-Platform GUI SD card creator for RPi
+
+### Advanced Installation
+- [Windows](https://www.raspberrypi.org/documentation/installation/installing-images/windows.md)
+- [OSX/MacOS](https://www.raspberrypi.org/documentation/installation/installing-images/mac.md)
+- [Linux](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
+
 # Usage
 
 Upon boot, Picroft will search for open wifi networks or an Ethernet connection.  If neither is found, the Wifi Setup process will begin to get the device connected to any available network.
