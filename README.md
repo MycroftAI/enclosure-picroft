@@ -1,13 +1,10 @@
 # Picroft 0.8
 The Picroft project is an enclosure for a stock Raspberry Pi connected to a speaker and basic USB microphone.  This is built around a Raspbian Jessie Lite installation.  The entire project is available as a pre-built micro-SD image ready to be burned and placed into a Raspberry Pi.  You can download the pre-built image here:
 
-
  [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 0.8 image](https://rebrand.ly/Picroft-0_8)
-
 
 SHA256 checksum for the PiCroft_v0.8b_Raspian_JessieLite_2017-01-26.zip image:
 ce316e13f53c261ab22a6856c397170d9dc3dd3bf4c3a5b49e10dcf668ed2c11
-
 
 # Requirements
 
@@ -38,6 +35,19 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
   "Hey Mycroft, what time is it?"
   "Mycroft, how tall was Abraham Lincoln?"
 
+# Apt errors (June 2017)
+
+If you receive an error on your picroft such as:
+- `W: GPG error: http://repo.mycroft.ai debian InRelease: The following signatures were invalid: KEYEXPIRED 1498079146 KEYEXPIRED 1498079146 KEYEXPIRED 1498079146 KEYEXPIRED 1498079146`
+- `Ign http://repo.mycroft.ai debian Release.gpg`
+- `E: Some index files failed to download. They have been ignored, or old ones used instead.`
+
+You need to run: `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F3B1AA8B`
+
+This will update the mycroft package signing key in the `apt` package manger "keyring."
+
+Sorry for this inconvience, as the time on GPG keys is in UNIX time since EPOCH it can be hard to keep track, and we apologize.
+
 # Versions
 * [0.8](https://rebrand.ly/Picroft-0_8) - Connecting to Home backend
 * [0.5.1](https://rebrand.ly/Picroft-0_5_1) - Fixed several audio issues with 0.5 image
@@ -62,3 +72,7 @@ Find the hwplug output for the device you want to use, take this and update the 
 "play_wav_cmdline": "aplay -Dhw:0,0 %1" this line now becomes "play_wav_cmdline": "aplay -Dplughw:1,0 %1"
 
 You can now run ./auto_run.sh to start the program back up and test and ensure the output comes through the USB speakers.
+
+---
+
+There is an active *Picroft* community within the [Mycroft Slack Channel](https://mycroft-ai-slack-invite.herokuapp.com) which are welcome to join!
