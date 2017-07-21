@@ -6,6 +6,11 @@ The Picroft project is an enclosure for a stock Raspberry Pi connected to a spea
 SHA256 checksum for the PiCroft_v0.8b_Raspian_JessieLite_2017-01-26.zip image:
 ce316e13f53c261ab22a6856c397170d9dc3dd3bf4c3a5b49e10dcf668ed2c11
 
+ [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") "unstable" Picroft 0.8 image]( https://mycroft.ai/to/picroft-unstable/)
+
+SHA256 checksum for the PiCroft_v0.8d_Raspian_JessieLite_2017-07-13.zip image:
+7323b0da8b8e6395e4fa8794fe45ede0d0bfa081fa5d8d00ad6df60a4bfde20e
+
 # Requirements
 
 * Raspberry Pi 3
