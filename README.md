@@ -13,7 +13,7 @@ SHA256 checksum for the PiCroft_v0.8d_Raspian_JessieLite_2017-07-13.zip image:
 
 # Requirements
 
-* Raspberry Pi 3
+* Raspberry Pi 3 (Older versions do not have sufficient processing power, and if they work they will be very slow)
 * MicroSD Card (4 GB or larger)
 * Any analog speaker
 * USB Microphone.  Tested with CM108-based microphones.
