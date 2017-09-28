@@ -20,7 +20,7 @@ updates on each reboot.
 
 
 Additional commands you can use from the command line:
-   cli - Starts a command line Mycroft client.  Just type instead of talking,
+   mycroft-cli-client - Starts a command line Mycroft client.  Just type instead of talking,
               watch log output, see microphone levels, etc.
 
    say_to_mycroft - One-shot method of "saying" something to Mycroft from the
