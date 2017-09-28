@@ -16,7 +16,6 @@ wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/hom
 
 cd ~/bin
 wget -N https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
-wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/cli
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/say_to_mycroft
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/speak
 wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/bin/test_microphone
