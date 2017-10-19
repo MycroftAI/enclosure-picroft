@@ -29,6 +29,15 @@ then
    sudo amixer cset numid=3 "1"   # audio out the analog speaker/headphone jack
    amixer set Master 75% # set volume to a reasonable level
 
+   # Disable mycroft-core initially while setup scripts might be running...
+   sudo service mycroft-wifi-setup-client stop
+   sudo service mycroft-enclosure-client stop
+   sudo service mycroft-speech-client stop
+   
+   # Let mycroft-skills run so it can perform MSM updates in the background.
+   # Restarting just in case the skill-pairing got start by the enclosure.
+   sudo service mycroft-skills restart
+
    # Do not edit this script (it may be replaced later by the update process),
    # but you can edit and customize the audio_setup.sh and custom_setup.sh
    # script.  Use the audio_setup.sh to change audio output configuration and
@@ -38,19 +47,21 @@ then
    if [ -f audio_setup.sh ]
    then
       source audio_setup.sh
+      cd ~
    fi
 
    # Check for custom Device setup
    if [ -f custom_setup.sh ]
    then
       source custom_setup.sh
+      cd ~
    fi
 
    # Upgrade if connected to the internet and one is available
    ping -q -c 1 -W 1 google.com >/dev/null 2>&1
    if [ $? -eq 0 ]
    then
-      echo "Checking for updates to Picroft environment"
+      echo "**** Checking for updates to Picroft environment"
       cd /tmp
       wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/version
       if [ $? -eq 0 ]
@@ -64,23 +75,29 @@ then
          if  [ $? -eq 1 ]
          then
             # Versions don't match...update needed
-            echo "Updating Picroft scripts!"
+            echo "**** Updating Picroft scripts!"
             speak "Updating Picroft, please hold on."
+
+            # Stop interactive parts of mycroft, as we don't
+            # want the user interacting with it while updating.
+            sudo service mycroft-skills stop
+
             wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/update.sh
             source update.sh
             cp /tmp/version ~/version
 
             # restart
-            echo "Rebooting now"
+            echo "Restarting..."
             speak "Update complete, restarting."
             sudo reboot now
          fi
       fi
 
-      echo "Checking for updates to Mycroft-core..."
+      echo "**** Checking for updates to Mycroft-core..."
       sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/repo.mycroft.ai.list" \
                      -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
       sudo apt-get install --only-upgrade mycroft-core mimic -y
+      cd ~
    fi
    echo ""
    echo "========================================"
@@ -88,10 +105,12 @@ then
    echo "========================================"
 
 
-   # TODO: I am not sure why the following is needed, but things don't start
-   #       correctly without this restart workaround.
+   # Ensure that everything is running properly after potential upgrades
+   # to picroft scripts, mycroft-core, etc.
    echo "Starting up services"
    sleep 10
+   sudo service mycroft-wifi-setup-client restart
+   sudo service mycroft-enclosure-client restart
    sudo service mycroft-speech-client restart
    sleep 5
 
@@ -152,8 +171,8 @@ echo "log will cease.  To see the live log again, type:"
 echo "    view_log"
 echo ""
 echo "Additional commands you can use from the command line:"
+echo "    mycroft-cli-client - command line client, useful for debugging"
 echo "    msm - Mycroft Skills Manager, install new Skills from Github"
-echo "    cli - command line client"
 echo "    say_to_mycroft - one-shot commands from the command line"
 echo "    speak - say something to the user"
 echo "    test_microphone - record and playback to test your microphone"
