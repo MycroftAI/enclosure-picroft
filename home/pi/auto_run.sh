@@ -96,8 +96,8 @@ then
       echo "**** Checking for updates to Mycroft-core..."
       sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/repo.mycroft.ai.list" \
                      -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-      sudo apt-get install --only-upgrade mycroft-core mimic -y
-      cd ~
+      sudo apt-get install --only-upgrade mycroft-picroft -y
+      cd ~/bin && wget -N https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
    fi
    echo ""
    echo "========================================"
