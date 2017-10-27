@@ -1,15 +1,10 @@
-# Picroft 0.8
+# Picroft 0.9
 The Picroft project is an enclosure for a stock Raspberry Pi connected to a speaker and basic USB microphone.  This is built around a Raspbian Jessie Lite installation.  The entire project is available as a pre-built micro-SD image ready to be burned and placed into a Raspberry Pi.  You can download the pre-built image here:
 
- [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 0.8 image](https://rebrand.ly/Picroft-0_8)
+ [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 0.9 image](https://mycroft.ai/to/picroft-image)
 
-SHA256 checksum for the PiCroft_v0.8b_Raspian_JessieLite_2017-01-26.zip image:
-ce316e13f53c261ab22a6856c397170d9dc3dd3bf4c3a5b49e10dcf668ed2c11
-
- [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") "unstable" Picroft 0.8 image]( https://mycroft.ai/to/picroft-unstable/)
-
-SHA256 checksum for the PiCroft_v0.8d_Raspian_JessieLite_2017-07-13.zip image:
-7323b0da8b8e6395e4fa8794fe45ede0d0bfa081fa5d8d00ad6df60a4bfde20e
+SHA256 checksum for the mark-1_production_20171019_build-10.zip image:
+98eccba84c1b923966a4bb71410ad0177a36871370f6b292fc875993fdf60d90
 
 # Requirements
 
@@ -31,7 +26,7 @@ SHA256 checksum for the PiCroft_v0.8d_Raspian_JessieLite_2017-07-13.zip image:
 
 # Usage
 
-Upon boot, Picroft will search for open wifi networks or an Ethernet connection.  If neither is found, the Wifi Setup process will begin to get the device connected to any available network.
+Upon boot, Picroft will search for an Ethernet connection.  If none is found, the Wifi Setup process will begin to get the device connected to any available network.
 
 Once connected, you must pair the device at https://home.mycroft.ai using the code spoken by the device.  You can also read the code on the screen.
 
@@ -40,20 +35,9 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
   "Hey Mycroft, what time is it?"
   "Mycroft, how tall was Abraham Lincoln?"
 
-# Apt errors (June 2017)
-
-If you receive an error on your picroft such as:
-- `W: GPG error: http://repo.mycroft.ai debian InRelease: The following signatures were invalid: KEYEXPIRED 1498079146 KEYEXPIRED 1498079146 KEYEXPIRED 1498079146 KEYEXPIRED 1498079146`
-- `Ign http://repo.mycroft.ai debian Release.gpg`
-- `E: Some index files failed to download. They have been ignored, or old ones used instead.`
-
-You need to run: `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F3B1AA8B`
-
-This will update the mycroft package signing key in the `apt` package manger "keyring."
-
-Sorry for this inconvience, as the time on GPG keys is in UNIX time since EPOCH it can be hard to keep track, and we apologize.
 
 # Versions
+* [0.9](https://mycroft.ai/to/picroft-image) - Preloaded with 17.08a, auto-upgrading from this repo
 * [0.8](https://rebrand.ly/Picroft-0_8) - Connecting to Home backend
 * [0.5.1](https://rebrand.ly/Picroft-0_5_1) - Fixed several audio issues with 0.5 image
 * 0.5 - Original image, connecting to Cerberus backend
@@ -80,4 +64,4 @@ You can now run ./auto_run.sh to start the program back up and test and ensure t
 
 ---
 
-There is an active *Picroft* community within the [Mycroft Slack Channel](https://mycroft-ai-slack-invite.herokuapp.com) which are welcome to join!
+There is an active *Picroft* community within the [Mycroft Mattermost Channel](https://chat.mycroft.ai) which are welcome to join!
