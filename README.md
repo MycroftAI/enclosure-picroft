@@ -9,7 +9,7 @@ SHA256 checksum for the mark-1_production_20171019_build-10.zip image:
 # Requirements
 
 * Raspberry Pi 3 (Older versions do not have sufficient processing power, and if they work they will be very slow)
-* MicroSD Card (4 GB or larger)
+* MicroSD Card (8 GB or larger)
 * Any analog speaker
 * USB Microphone.  Tested with CM108-based microphones.
 
