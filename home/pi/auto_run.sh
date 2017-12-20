@@ -18,7 +18,7 @@ echo "is pre-configured for a Raspberry Pi that has a speaker or headphones"
 echo "plugged in to the Pi's headphone jack, and a USB microphone."
 echo "***********************************************************************"
 
-if [ "$SSH_CLIENT" == "" ]
+if [ "$SSH_CLIENT" == "" ] && [ "$(/usr/bin/tty)" = "/dev/tty1" ];
 then
    # running at the local console (e.g. plugged into the HDMI output)
 
