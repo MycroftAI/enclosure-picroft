@@ -11,7 +11,7 @@ export PATH="$HOME/bin:$PATH"
 
 echo ""
 echo "***********************************************************************"
-echo "** Picroft development image, ver" $(<version)
+echo "** Picroft enclosure platform version: " $(<version)
 echo "***********************************************************************"
 echo "This image is designed to make getting started with Mycroft easy.  It"
 echo "is pre-configured for a Raspberry Pi that has a speaker or headphones"
@@ -30,8 +30,7 @@ then
    amixer set Master 75% # set volume to a reasonable level
 
    # Disable mycroft-core initially while setup scripts might be running...
-   sudo service mycroft-wifi-setup-client stop
-   sudo service mycroft-enclosure-client stop
+   sudo service mycroft-admin-service stop
    sudo service mycroft-speech-client stop
    
    # Let mycroft-skills run so it can perform MSM updates in the background.
@@ -109,8 +108,7 @@ then
    # to picroft scripts, mycroft-core, etc.
    echo "Starting up services"
    sleep 10
-   sudo service mycroft-wifi-setup-client restart
-   sudo service mycroft-enclosure-client restart
+   sudo service mycroft-admin-service restart
    sudo service mycroft-speech-client restart
    sleep 5
 
@@ -180,4 +178,4 @@ echo "***********************************************************************"
 echo ""
 echo ""
 sleep 2
-tail -f /var/log/mycroft-speech-client.log
+mycroft-cli-client
