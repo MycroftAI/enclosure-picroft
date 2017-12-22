@@ -103,6 +103,14 @@ then
    python -c "import mycroft.version; print 'Mycroft Core Version: '+mycroft.version.CORE_VERSION_STR"
    echo "========================================"
 
+   MARK1_ARDUINO_SCRIPT="/opt/mycroft/enclosure/upload.sh"
+   if [ -f $MARK1_ARDUINO_SCRIPT ]
+   then
+       # This file slipped onto a release of Picroft accidentally.  It can
+       # cause the CPU to rev a core to 100% while it attempts to update a
+       # non-existant Arduino.
+       sudo rm $MARK1_ARDUINO_SCRIPT
+   fi
 
    # Ensure that everything is running properly after potential upgrades
    # to picroft scripts, mycroft-core, etc.
@@ -178,4 +186,4 @@ echo "***********************************************************************"
 echo ""
 echo ""
 sleep 2
-mycroft-cli-client
+tail -f /var/log/mycroft-speech-client.log
