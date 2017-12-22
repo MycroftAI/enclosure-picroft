@@ -11,14 +11,14 @@ export PATH="$HOME/bin:$PATH"
 
 echo ""
 echo "***********************************************************************"
-echo "** Picroft development image, ver" $(<version)
+echo "** Picroft enclosure platform version: " $(<version)
 echo "***********************************************************************"
 echo "This image is designed to make getting started with Mycroft easy.  It"
 echo "is pre-configured for a Raspberry Pi that has a speaker or headphones"
 echo "plugged in to the Pi's headphone jack, and a USB microphone."
 echo "***********************************************************************"
 
-if [ "$SSH_CLIENT" == "" ]
+if [ "$SSH_CLIENT" == "" ] && [ "$(/usr/bin/tty)" = "/dev/tty1" ];
 then
    # running at the local console (e.g. plugged into the HDMI output)
 
@@ -30,8 +30,7 @@ then
    amixer set Master 75% # set volume to a reasonable level
 
    # Disable mycroft-core initially while setup scripts might be running...
-   sudo service mycroft-wifi-setup-client stop
-   sudo service mycroft-enclosure-client stop
+   sudo service mycroft-admin-service stop
    sudo service mycroft-speech-client stop
    
    # Let mycroft-skills run so it can perform MSM updates in the background.
@@ -104,13 +103,20 @@ then
    python -c "import mycroft.version; print 'Mycroft Core Version: '+mycroft.version.CORE_VERSION_STR"
    echo "========================================"
 
+   MARK1_ARDUINO_SCRIPT="/opt/mycroft/enclosure/upload.sh"
+   if [ -f $MARK1_ARDUINO_SCRIPT ]
+   then
+       # This file slipped onto a release of Picroft accidentally.  It can
+       # cause the CPU to rev a core to 100% while it attempts to update a
+       # non-existant Arduino.
+       sudo rm $MARK1_ARDUINO_SCRIPT
+   fi
 
    # Ensure that everything is running properly after potential upgrades
    # to picroft scripts, mycroft-core, etc.
    echo "Starting up services"
    sleep 10
-   sudo service mycroft-wifi-setup-client restart
-   sudo service mycroft-enclosure-client restart
+   sudo service mycroft-admin-service restart
    sudo service mycroft-speech-client restart
    sleep 5
 
