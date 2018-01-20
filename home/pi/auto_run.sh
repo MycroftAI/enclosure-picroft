@@ -166,8 +166,6 @@ else
    echo "Remote session"
 fi
 
-
-sleep 2
 echo ""
 echo "***********************************************************************"
 echo "In a few moments you will see the contents of the speech log.  Hit"
@@ -184,6 +182,5 @@ echo "    speak - say something to the user"
 echo "    test_microphone - record and playback to test your microphone"
 echo "***********************************************************************"
 echo ""
-echo ""
-sleep 2
-tail -f /var/log/mycroft-speech-client.log
+
+mycroft-cli-client
