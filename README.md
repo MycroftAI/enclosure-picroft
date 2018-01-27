@@ -1,19 +1,21 @@
-# Picroft 0.9
+# Welcome
+
+## Picroft 0.9.1
 The Picroft project is an enclosure for a stock Raspberry Pi connected to a speaker and basic USB microphone.  This is built around a Raspbian Jessie Lite installation.  The entire project is available as a pre-built micro-SD image ready to be burned and placed into a Raspberry Pi.  You can download the pre-built image here:
 
  [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 0.9 image](https://mycroft.ai/to/picroft-image)
 
-SHA256 checksum for the `raspbian_Picroft_2017-10-19_v0.9.zip` image:
-`6a183ad933095b8b20dbcb9002c3699298e928d04c0763d718b5af056892efaa`
+SHA256 checksum for the `raspbian_Picroft_2018-01-19_v0.9.1.zip` image:
+`d3041e41e7b6f1ca4f4b9ad3b4a665702b9dc32b285884d9bfdad8aefb9b788d`
 
-# Requirements
+## Requirements
 
 * Raspberry Pi 3 (Older versions do not have sufficient processing power, and if they work they will be very slow)
 * MicroSD Card (8 GB or larger)
 * Any analog speaker
 * USB Microphone.  Tested with CM108-based microphones.
 
-# Installation
+## Installation
 
 [Official Raspberry Pi Image Installation Instuctions](https://www.raspberrypi.org/documentation/installation/installing-images/)
 
@@ -24,7 +26,7 @@ SHA256 checksum for the `raspbian_Picroft_2017-10-19_v0.9.zip` image:
 - [OSX/MacOS](https://www.raspberrypi.org/documentation/installation/installing-images/mac.md)
 - [Linux](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
-# Usage
+## Usage
 
 Upon boot, Picroft will search for an Ethernet connection.  If none is found, the Wifi Setup process will begin to get the device connected to any available network.
 
@@ -36,21 +38,22 @@ After that, you can simply speak to Picroft as you would to any Mycroft implemen
   "Mycroft, how tall was Abraham Lincoln?"
 
 
-# Versions
+## Versions
+* [0.9.1](https://mycroft.ai/to/picroft-image) - Preloaded with mycroft-core 0.9.14, better pairing, CLI after boot
 * [0.9](https://mycroft.ai/to/picroft-image) - Preloaded with 17.08a, auto-upgrading from this repo
 * [0.8](https://rebrand.ly/Picroft-0_8) - Connecting to Home backend
 * [0.5.1](https://rebrand.ly/Picroft-0_5_1) - Fixed several audio issues with 0.5 image
 * 0.5 - Original image, connecting to Cerberus backend
 
-# Help and more info
+## Help and more info
 Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
 There's also the general [Documentation](https://docs.mycroft.ai/).
 
-# There are two scripts run on startup
+## There are two scripts run on startup
 * `audio_setup.sh` configures your specific audio setup.
 * `custom_setup.sh` is a stub meant to initialize any other IoT devices or services you might need like a DLNA server or syslog for example.
 
-# Using USB Audio as Output
+## Using USB Audio as Output
 
 Typically the USB audio should be connected to hwplug:1,0 but to verify run the following:
 
@@ -64,4 +67,4 @@ You can now run ./auto_run.sh to start the program back up and test and ensure t
 
 ---
 
-There is an active *Picroft* community within the [Mycroft Mattermost Channel](https://chat.mycroft.ai) which are welcome to join!
+There is an active *Picroft* community within the [Mycroft's Mattermost](https://chat.mycroft.ai/community/channels/picroft) which are welcome to join!
