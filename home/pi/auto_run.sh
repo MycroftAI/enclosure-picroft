@@ -9,9 +9,12 @@
 # Comamnd line helpers
 export PATH="$HOME/bin:$PATH"
 
+mycroft_core_ver=$(python -c "import mycroft.version; print 'mycroft-core: '+mycroft.version.CORE_VERSION_STR" | grep "core:")
+
 echo ""
 echo "***********************************************************************"
-echo "** Picroft enclosure platform version: " $(<version)
+echo "** Picroft enclosure platform version:" $(<version)
+echo "**                       $mycroft_core_ver"
 echo "***********************************************************************"
 echo "This image is designed to make getting started with Mycroft easy.  It"
 echo "is pre-configured for a Raspberry Pi that has a speaker or headphones"
@@ -32,7 +35,7 @@ then
    # Disable mycroft-core initially while setup scripts might be running...
    sudo service mycroft-admin-service stop
    sudo service mycroft-speech-client stop
-   
+
    # Let mycroft-skills run so it can perform MSM updates in the background.
    # Restarting just in case the skill-pairing got start by the enclosure.
    sudo service mycroft-skills restart
@@ -62,7 +65,7 @@ then
    then
       echo "**** Checking for updates to Picroft environment"
       cd /tmp
-      wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/version
+      wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/version
       if [ $? -eq 0 ]
       then
          if [ ! -f ~/version ]
@@ -81,14 +84,19 @@ then
             # want the user interacting with it while updating.
             sudo service mycroft-skills stop
 
-            wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/update.sh
-            source update.sh
-            cp /tmp/version ~/version
+            wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/update.sh
+            if [ $? -eq 0 ]
+            then
+               source update.sh
+               cp /tmp/version ~/version
 
-            # restart
-            echo "Restarting..."
-            speak "Update complete, restarting."
-            sudo reboot now
+               # restart
+               echo "Restarting..."
+               speak "Update complete, restarting."
+               sudo reboot now
+            else
+               echo "ERROR: Failed to download update script."
+            fi
          fi
       fi
 
@@ -96,12 +104,9 @@ then
       sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/repo.mycroft.ai.list" \
                      -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
       sudo apt-get install --only-upgrade mycroft-picroft -y
-      cd ~/bin && wget -N https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
+      cd ~/bin && wget -N -q https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
+      cd ~
    fi
-   echo ""
-   echo "========================================"
-   python -c "import mycroft.version; print 'Mycroft Core Version: '+mycroft.version.CORE_VERSION_STR"
-   echo "========================================"
 
    MARK1_ARDUINO_SCRIPT="/opt/mycroft/enclosure/upload.sh"
    if [ -f $MARK1_ARDUINO_SCRIPT ]
@@ -114,7 +119,7 @@ then
 
    # Ensure that everything is running properly after potential upgrades
    # to picroft scripts, mycroft-core, etc.
-   echo "Starting up services"
+   echo "**** Starting up Mycroft services"
    sleep 10
    sudo service mycroft-admin-service restart
    sudo service mycroft-speech-client restart
@@ -169,18 +174,17 @@ fi
 echo ""
 echo "***********************************************************************"
 echo "In a few moments you will see the contents of the speech log.  Hit"
-echo "Ctrl+C to stop showing the log and return to the command line.  You will"
-echo "still be able to speak to Mycroft after that, only the display of the"
-echo "log will cease.  To see the live log again, type:"
-echo "    view_log"
+echo "Ctrl+C to stop showing the log and return to the command line.  Mycroft"
+echo "will continue running in the background for voice interaction."
 echo ""
 echo "Additional commands you can use from the command line:"
 echo "    mycroft-cli-client - command line client, useful for debugging"
-echo "    msm - Mycroft Skills Manager, install new Skills from Github"
-echo "    say_to_mycroft - one-shot commands from the command line"
-echo "    speak - say something to the user"
-echo "    test_microphone - record and playback to test your microphone"
+echo "    msm                - Mycroft Skills Manager, install new Skills"
+echo "    say_to_mycroft     - one-shot commands from the command line"
+echo "    speak              - say something to the user"
+echo "    test_microphone    - record and playback to test your microphone"
 echo "***********************************************************************"
 echo ""
 
+sleep 5
 mycroft-cli-client
