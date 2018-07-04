@@ -1,5 +1,7 @@
 #!/bin/bash
-python messagebus_emit.py mycroft.wifi.start
+
+PYTHON="/opt/venvs/mycroft-core/bin/python"
+${PYTHON} -c "from mycroft.messagebus.send import send;send('mycroft.wifi.start')"
 
 echo "====================================================================="
 echo "Wifi setup has begun.  Use your phone, tablet or laptop to connect to"

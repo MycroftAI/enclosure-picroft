@@ -1,4 +1,26 @@
-#!/bin/bash
+#!/opt/venvs/mycroft-core/bin/python
 
 # This script allows sending commands to Mycroft via the command line
-python ~/say_command.py "$@"
+import sys
+import os.path
+from mycroft.messagebus.send import send
+
+def print_help():
+    filename = os.path.basename(__file__)
+    print(filename)
+    print("Simple command line interface to the Mycroft system.")
+    print("\tUsage: " +  filename + " <utterance>\n")
+    print("\t         where <utterance> is treated as if spoken to Mycroft.")
+    print("\tExample: " + filename + " \"what time is it\"")
+
+
+if len(sys.argv) < 2:
+    print_help()
+else:
+    if len(sys.argv) == 2:
+        phrase_to_say = sys.argv[1]
+    else:
+        phrase_to_say = " ".join(sys.argv[1:])
+
+    send("recognizer_loop:utterance",{'utterances': [phrase_to_say]})
+    print("sent!")
