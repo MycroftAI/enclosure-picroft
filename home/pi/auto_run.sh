@@ -5,51 +5,279 @@
 # This script is executed by the .bashrc every time someone logs in to the
 # system.
 
-######################
-# Comamnd line helpers
+# Do not edit this script (it may be replaced later by the update process),
+# but you can edit and customize the audio_setup.sh and custom_setup.sh
+# script.  Use the audio_setup.sh to change audio output configuration and
+# default volume; use custom_setup.sh to initialize any other IoT devices.
+#
+
 export PATH="$HOME/bin:$PATH"
 
-mycroft_core_ver=$(python -c "import mycroft.version; print 'mycroft-core: '+mycroft.version.CORE_VERSION_STR" | grep "core:")
+function network_setup() {
+   # silent check at first
+   if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1 ; then
+      return 0
+   fi
+
+   # Wait for an internet connection -- either the user finished Wifi Setup or
+   # plugged in a network cable.
+   show_prompt=1
+   should_reboot=255
+   while ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1 ; do
+      if [ $show_prompt = 1 ] ; then
+         echo "Network connection not found, press a key to setup via keyboard"
+         echo "or plug in a network cable:"
+         echo "  1) Basic wifi with SSID and password (WEP)"
+         echo "  2) Wifi with no password"
+         echo "  3) TODO: Advanced wifi"
+         echo "  4) Edit wpa_supplicant.conf directly"
+         echo "  5) Force reboot"
+         echo "  6) Skip network setup for now"
+         echo -n "Choice [1-6]: "
+         show_prompt=0
+      fi
+
+      read -N1 -s -t 1 pressed
+
+      case $pressed in
+         1)
+            echo ""
+            echo -n "Enter a network SSID: "
+            read user_ssid
+            echo -n "Enter the password: "
+            read -s user_pwd
+            echo ""
+            echo -n "Enter the password again: "
+            read -s user_confirm
+            echo ""
+
+            if [[ "$user_pwd" = "$user_confirm" && "$user_ssid" != "" ]]
+            then
+               echo "network={" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               echo "        psk=\"$user_pwd\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               should_reboot=1
+               break
+            else
+               show_prompt=1
+            fi
+            ;;
+         2)
+            echo ""
+            echo -n "Enter a network SSID: "
+            read user_ssid
+
+            if [ ! "$user_ssid" = "" ]
+            then
+               echo "network={" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               echo "        key_mgmt=NONE" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+               should_reboot=1
+               break
+            else
+               show_prompt=1
+            fi
+            ;;
+         3)
+            echo ""
+            echo "TODO: Options for WPA 2 Ent, etc"
+            # See:  https://github.com/MycroftAI/enclosure-picroft/blob/master/setup_eap_wifi.sh
+            # See also:  https://w1.fi/cgit/hostap/plain/wpa_supplicant/wpa_supplicant.conf
+            break
+            ;;
+         4)
+            sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+            should_reboot=1
+            break
+            ;;
+         5)
+            should_reboot=1
+            break
+            ;;
+         6)
+            should_reboot=0
+            break;
+            ;;
+      esac
+   done
+
+   if [[ $should_reboot -eq 255 ]]
+   then
+      # Auto-detected
+      echo ""
+      echo "Network connection detected!"
+      should_reboot=0
+   fi
+
+   return $should_reboot
+}
+
+function setup_wizard() {
+
+   # Handle internet connection
+   network_setup
+   if [[ $? -eq 1 ]]
+   then
+      echo "Rebooting..."
+      sudo reboot
+   fi
+
+   echo ""
+   echo "How do you want Mycroft to output audio:"
+   echo "  1) Speakers via 3.5mm output (aka 'audio jack' or 'headphone jack')"
+   echo "  2) HDMI audio (e.g. a TV or monitor with built-in speakers)"
+   echo "  3) USB audio (e.g. a USB soundcard or USB mic/speaker combo)"
+   echo -n "Choice [1-3]: "
+   while true; do
+      read -N1 -s key
+      case $key in
+         [1])
+            echo "$key - Analog audio"
+            # audio out the analog speaker/headphone jack
+            sudo amixer cset numid=3 "1" > /dev/null
+            echo 'sudo amixer cset numid=3 "1"' >> ~/audio_setup.sh
+            break
+            ;;
+         [2])
+            echo "$key - HDMI audio"
+            # audio out the HDMI port (e.g. TV speakers)
+            sudo amixer cset numid=3 "2" > /dev/null
+            echo 'sudo amixer cset numid=3 "2"' >> ~/audio_setup.sh
+            break
+            ;;
+         [3])
+            echo "$key - USB audio"
+            # audio out to the USB soundcard
+            sudo amixer cset numid=3 "0" > /dev/null
+            echo 'sudo amixer cset numid=3 "0"' >> ~/audio_setup.sh
+            break
+            ;;
+      esac
+   done
+
+   lvl=7
+   echo ""
+   echo "Let's test and adjust the volume:"
+   echo "  1-9) Set volume level (1-quietest, 9=loudest)"
+   echo "  T)est"
+   echo "  R)eboot (might be needed if you just plugged in a USB speaker)"
+   echo "  D)one!"
+   while true; do
+      echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
+      read -N1 -s key
+      case $key in
+        [1-9])
+           lvl=$key
+           # Set volume between 19% and 99%.  Lazily not allowing 100% :)
+           amixer set PCM "${lvl}9%" > /dev/null
+           echo -e -n "\b$lvl PLAYING"
+           speak "Test"
+           ;;
+        [Rr])
+           echo "Rebooting..."
+           sudo reboot
+           ;;
+        [Tt])
+           amixer set PCM '${lvl}9%' > /dev/null
+           echo -e -n "\b$lvl PLAYING"
+           speak "Test"
+           ;;
+        [Dd])
+           echo " - Saving"
+           break
+           ;;
+      esac
+   done
+   echo "amixer set PCM "$lvl"9%" >> ~/audio_setup.sh
+
+   echo ""
+   echo "Final step: testing your microphone."
+   echo "TODO: Something interactive"
+   echo ""
+
+   echo "Hardware setup is complete.  Now we'll pull down the latest software updates"
+   echo "and start Mycroft.  You'll be prompted to pair this device with an account at"
+   echo "https://home.mycroft.ai, then you'll be set to enjoy your Picroft!"
+   echo ""
+   echo "To rerun this setup, type 'touch first_run' and reboot."
+   echo ""
+   echo "Press any key to continue..."
+   read -N1 -s anykey
+}
+
+######################
+# mycroft_core_ver=$(python -c "import mycroft.version; print 'mycroft-core: '+mycroft.version.CORE_VERSION_STR" | grep "core:")
+
 
 echo ""
 echo "***********************************************************************"
 echo "** Picroft enclosure platform version:" $(<version)
 echo "**                       $mycroft_core_ver"
 echo "***********************************************************************"
-echo "This image is designed to make getting started with Mycroft easy.  It"
-echo "is pre-configured for a Raspberry Pi that has a speaker or headphones"
-echo "plugged in to the Pi's headphone jack, and a USB microphone."
-echo "***********************************************************************"
+
+if [ -f ~/first_run ]
+then
+   echo "Welcome to Picroft!  This image is designed to make getting started with"
+   echo "Mycroft quick and easy.  Would you like help setting up your system?"
+   echo "  Y)es, I'd like to setup via a series of questions."
+   echo "  N)ope, just get me a command line and get out of my way!"
+   echo -n "Choice [Y/N]: "
+   while true; do
+      read -N1 -s key
+      case $key in
+         [Nn])
+            echo $key
+            echo ""
+            echo "Alright, have fun!"
+            echo "NOTE: If you decide to use the wizard later, just type 'touch first_run'"
+            echo "      and reboot."
+            break
+            ;;
+         [Yy])
+            echo $key
+            echo ""
+            setup_wizard
+            break
+            ;;
+      esac
+   done
+
+   # Delete to flag setup is complete
+   rm ~/first_run
+fi
+
+# UNCOMMENT WHEN TESTING
+# touch ~/first_run
+# return
+
 
 if [ "$SSH_CLIENT" == "" ] && [ "$(/usr/bin/tty)" = "/dev/tty1" ];
 then
    # running at the local console (e.g. plugged into the HDMI output)
 
-   # Make sure the audio is being output via the correct device.  You can
-   # change this to match your usage in audio_setup.sh, the default is
-   # to output from the headphone jack.
+   # Make sure the audio is being output reasonably.  This can be set
+   # to match user preference in audio_setup.sh.  DON'T EDIT HERE,
+   # the script will likely be overwritten during later updates.
    #
-   sudo amixer cset numid=3 "1"   # audio out the analog speaker/headphone jack
-   amixer set Master 75% # set volume to a reasonable level
+   # Default to analog audio jack at 75% volume
+   sudo amixer cset numid=3 "1" > /dev/null
+   amixer set PCM 75% > /dev/null
 
-   # Disable mycroft-core initially while setup scripts might be running...
-   sudo service mycroft-admin-service stop
-   sudo service mycroft-speech-client stop
-
-   # Let mycroft-skills run so it can perform MSM updates in the background.
-   # Restarting just in case the skill-pairing got start by the enclosure.
-   sudo service mycroft-skills restart
-
-   # Do not edit this script (it may be replaced later by the update process),
-   # but you can edit and customize the audio_setup.sh and custom_setup.sh
-   # script.  Use the audio_setup.sh to change audio output configuration and
-   # default volume; use custom_setup.sh to initialize any other IoT devices.
-   #
    # Check for custom audio setup
    if [ -f audio_setup.sh ]
    then
       source audio_setup.sh
       cd ~
+   fi
+
+   # verify network settings
+   network_setup
+   if [[ $? -eq 1 ]]
+   then
+      echo "Rebooting..."
+      sudo reboot
    fi
 
    # Check for custom Device setup
@@ -59,92 +287,21 @@ then
       cd ~
    fi
 
-   # Upgrade if connected to the internet and one is available
-   ping -q -c 1 -W 1 google.com >/dev/null 2>&1
-   if [ $? -eq 0 ]
+   # Look for internet connection.
+   if ping -q -c 1 -W 1 google.com >/dev/null 2>&1
    then
-      echo "**** Checking for updates to Picroft environment"
-      cd /tmp
-      wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/version
-      if [ $? -eq 0 ]
-      then
-         if [ ! -f ~/version ]
-         then
-            echo "unknown" > ~/version
-         fi
-
-         cmp /tmp/version ~/version
-         if  [ $? -eq 1 ]
-         then
-            # Versions don't match...update needed
-            echo "**** Updating Picroft scripts!"
-            speak "Updating Picroft, please hold on."
-
-            # Stop interactive parts of mycroft, as we don't
-            # want the user interacting with it while updating.
-            sudo service mycroft-skills stop
-
-            wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/master/home/pi/update.sh
-            if [ $? -eq 0 ]
-            then
-               source update.sh
-               cp /tmp/version ~/version
-
-               # restart
-               echo "Restarting..."
-               speak "Update complete, restarting."
-               sudo reboot now
-            else
-               echo "ERROR: Failed to download update script."
-            fi
-         fi
-      fi
-
-      echo "**** Checking for updates to Mycroft-core..."
-      sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/repo.mycroft.ai.list" \
-                     -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-      sudo apt-get install mycroft-picroft -y
-      cd ~/bin && wget -N -q https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
+      # TODO: Skip update check if done recently?
+      echo "Updating mycroft-core..."
+      cd ~/mycroft-core
+      git pull
       cd ~
    fi
 
-   MARK1_ARDUINO_SCRIPT="/opt/mycroft/enclosure/upload.sh"
-   if [ -f $MARK1_ARDUINO_SCRIPT ]
-   then
-       # This file slipped onto a release of Picroft accidentally.  It can
-       # cause the CPU to rev a core to 100% while it attempts to update a
-       # non-existant Arduino.
-       sudo rm $MARK1_ARDUINO_SCRIPT
-   fi
-
-   # Ensure that everything is running properly after potential upgrades
-   # to picroft scripts, mycroft-core, etc.
-   echo "**** Starting up Mycroft services"
-   sleep 10
-   sudo service mycroft-admin-service restart
-   sudo service mycroft-speech-client restart
-   sleep 5
-
-   # check to see if the unit is connected to the internet.
-   if ! ping -q -c 1 -W 1 google.com >/dev/null 2>&1
-   then
-      echo "Internet connection not detected, starting WIFI setup process..."
-      source configure_wifi.sh &
-      # Wait for an internet connection -- either the user finished Wifi Setup or
-      # plugged in a network cable.
-      while ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1 ; do
-         sleep 1
-      done
-
-      echo "Internet connection detected!"
-      echo "Restarting..."
-      speak "Restarting now."
-      sudo reboot now
-   fi
-
+   # Launch Mycroft Services ======================
+   source ~/mycroft-core/start-mycroft.sh all &
 
    # check to see if the unit has been registered yet
-   IDENTITY_FILE="/home/mycroft/.mycroft/identity/identity2.json"
+   IDENTITY_FILE="/home/pi/.mycroft/identity/identity2.json"
    if [ -f $IDENTITY_FILE ]
    then
       IDENTITY_FILE_SIZE=$(stat -c%s $IDENTITY_FILE)
@@ -159,7 +316,7 @@ then
       echo "This unit needs to be registered.  Use your computer or mobile device"
       echo "to browse to https://home.mycroft.ai and enter the pairing code"
       echo "displayed below."
-      sleep 2
+      sleep 10
       say_to_mycroft "pair my device" >/dev/null 2>&1 &
    else
       echo "Mycroft is currently running in the background, so you can say"
@@ -168,8 +325,9 @@ then
    fi
 else
    # running from a SSH session
-   echo "Remote session"
+   echo ""
 fi
+
 
 echo ""
 echo "***********************************************************************"
@@ -186,5 +344,5 @@ echo "    test_microphone    - record and playback to test your microphone"
 echo "***********************************************************************"
 echo ""
 
-sleep 5
-mycroft-cli-client
+sleep 5  # for some reason this delay is needed for the mic to be detected
+source ~/mycroft-core/start-mycroft.sh cli
