@@ -1,5 +1,9 @@
 #!/bin/bash
-
 # This script invokes Text to Speech on the given text
-mimic -voice ap -t "$@"
+
+# Enter the Mycroft venv
+source /opt/venvs/mycroft-core/bin/activate
+
+# Send a message to be spoken
+output=$(python -m mycroft.messagebus.send "speak"  "{\"utterance\": \"$@\"}")
 

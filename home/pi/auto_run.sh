@@ -9,7 +9,14 @@
 # Comamnd line helpers
 export PATH="$HOME/bin:$PATH"
 
-mycroft_core_ver=$(python -c "import mycroft.version; print 'mycroft-core: '+mycroft.version.CORE_VERSION_STR" | grep "core:")
+ # Remove old msm if it exists
+if [ -f $HOME/bin/msm ]; then
+  rm $HOME/bin/msm
+fi
+
+PYTHON="/opt/venvs/mycroft-core/bin/python"
+mycroft_core_ver=$(${PYTHON} -c "import mycroft.version; print('mycroft-core: ' + mycroft.version.CORE_VERSION_STR)" | grep "core:")
+
 
 echo ""
 echo "***********************************************************************"
@@ -103,7 +110,7 @@ then
       echo "**** Checking for updates to Mycroft-core..."
       sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/repo.mycroft.ai.list" \
                      -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-      sudo apt-get install mycroft-picroft -y
+      sudo apt-get install --only-upgrade mycroft-picroft -y --force-yes
       cd ~/bin && wget -N -q https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
       cd ~
    fi
