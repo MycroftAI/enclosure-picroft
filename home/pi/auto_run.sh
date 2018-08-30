@@ -103,7 +103,7 @@ then
       echo "**** Checking for updates to Mycroft-core..."
       sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/repo.mycroft.ai.list" \
                      -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-      sudo apt-get install mycroft-picroft -y
+      sudo apt-get install --only-upgrade mycroft-picroft -y --force-yes
       cd ~/bin && wget -N -q https://raw.githubusercontent.com/MycroftAI/mycroft-core/master/msm/msm
       cd ~
    fi

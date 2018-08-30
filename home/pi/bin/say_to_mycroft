@@ -1,4 +1,9 @@
 #!/bin/bash
-
 # This script allows sending commands to Mycroft via the command line
-python ~/say_command.py "$@"
+# Ex: say_to_mycroft "what is the weather like"
+
+# Enter the Mycroft venv
+source /opt/venvs/mycroft-core/bin/activate
+
+# Post the spoken message as a 
+python -m mycroft.messagebus.send "recognizer_loop:utterance"  "{\"utterances\": [\"$@\"], \"lang\": \"en-us\"}"
