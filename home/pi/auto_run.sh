@@ -9,7 +9,14 @@
 # Comamnd line helpers
 export PATH="$HOME/bin:$PATH"
 
-mycroft_core_ver=$(python -c "import mycroft.version; print 'mycroft-core: '+mycroft.version.CORE_VERSION_STR" | grep "core:")
+ # Remove old msm if it exists
+if [ -f $HOME/bin/msm ]; then
+  rm $HOME/bin/msm
+fi
+
+PYTHON="/opt/venvs/mycroft-core/bin/python"
+mycroft_core_ver=$(${PYTHON} -c "import mycroft.version; print('mycroft-core: ' + mycroft.version.CORE_VERSION_STR)" | grep "core:")
+
 
 echo ""
 echo "***********************************************************************"
