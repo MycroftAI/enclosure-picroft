@@ -74,17 +74,12 @@ ExecStart=-/sbin/agetty --autologin <user> --noclear %I     38400 linux
     - Add: ```tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0```
   - ```sudo nano /etc/mycroft/mycroft.conf```
     - Add: ```"ipc_path": "/ramdisk/mycroft/ipc/"```
-
-### Install polkit for MSM
-* ```sudo apt-get install packagekit -y```
-* ```sudo nano /etc/polkit-1/localauthority/50-local.d/allow_mycroft_to_install_package.pkla```
-   - Populate with:
-     ```
-     [Allow mycroft to install packages using packagekit]
-     Identity=unix-user:mycroft`
-     Action=org.freedesktop.packagekit.package-eula-accept;org.freedesktop.packagekit.package-install ResultAny=yes
-     ```
-     
+    
+### Set the device to not use locale settings provided by ssh
+* ```sudo nano /etc/ssh/sshd_config``` and comment out the line (prefix with '#')
+   ```
+   AcceptEnv LANG LC_*
+   ```
      
 ### Install git and mycroft-core
 * ```sudo apt-get install git```
