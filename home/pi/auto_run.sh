@@ -27,7 +27,7 @@ function network_setup() {
       if [ $show_prompt = 1 ] ; then
          echo "Network connection not found, press a key to setup via keyboard"
          echo "or plug in a network cable:"
-         echo "  1) Basic wifi with SSID and password (WEP)"
+         echo "  1) Basic wifi with SSID and password"
          echo "  2) Wifi with no password"
          echo "  3) TODO: Advanced wifi"
          echo "  4) Edit wpa_supplicant.conf directly"
