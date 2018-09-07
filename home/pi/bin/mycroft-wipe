@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Copyright 2018 Mycroft AI Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+if [ "$0" = "$BASH_SOURCE" ]
+then
+   echo "To completely wipe the system, invoke using 'source bin/mycroft-wipe'"
+   exit 1
+fi
+
+echo "This will completely reset your Picroft.  Are you certain you want to do this?"
+echo -n "Choice [y/N]:"
+
+read -N1 -s key
+case $key in
+   [Yy])
+      echo $key
+      echo "Starting wipe in 2 seconds..."
+      sleep 2
+      echo "Wiping system..."
+
+      # Remove all Mycroft user settings
+      rm -Rf ~/.mycroft
+
+      # Remove all custom skills/settings (except very basics)
+      mv /opt/mycroft/skills/mycroft-pairing.mycroftai /opt/mycroft
+      mv /opt/mycroft/skills/mycroft-installer.mycroftai /opt/mycroft
+      mv /opt/mycroft/skills/mycroft-configuration.mycroftai /opt/mycroft
+      rm -Rf /opt/mycroft/skills/*
+      mv /opt/mycroft/mycroft-pairing.mycroftai /opt/mycroft/skills
+      mv /opt/mycroft/mycroft-installer.mycroftai /opt/mycroft/skills
+      mv /opt/mycroft/mycroft-configuration.mycroftai /opt/mycroft/skills
+
+      # Remove audio settings
+      if [ -f ~/audio_setup.sh ]
+      then
+         sudo rm ~/audio_setup.sh
+      fi
+      echo "#!/bin/bash" > ~/audio_setup.sh
+      echo "# Use this script to execute audio setup actions" >> ~/audio_setup.sh
+
+      # Remove custom scripts
+      if [ -f ~/custom_setup.sh ]
+      then
+         sudo rm ~/custom_setup.sh
+      fi
+      echo "#!/bin/bash" > ~/custom_setup.sh
+      echo "# Use this script to execute custom actions on startup." >> ~/custom_setup.sh
+
+      # Wipe network settings
+      if [ -f /etc/wpa_supplicant/wpa_supplicant.conf ]
+      then
+         sudo rm /etc/wpa_supplicant/wpa_supplicant.conf
+      fi
+      echo "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+      echo "update_config=1" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+      echo "country=US" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
+
+      # Reset to run setup next boot
+      touch ~/first_run
+
+      # Reset bash history
+      history -c
+      history -w
+
+      # Done
+      echo "Wipe is complete.  Shutting down in 5 seconds."
+      sleep 5
+      sudo shutdown now
+      ;;
+
+   *)
+      echo $key
+      echo ""
+      echo "Cancelled"
+      ;;
+esac
