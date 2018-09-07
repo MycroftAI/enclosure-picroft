@@ -345,4 +345,5 @@ echo "***********************************************************************"
 echo ""
 
 sleep 5  # for some reason this delay is needed for the mic to be detected
+cd ~/mycroft-core # This is needed for the dependency checks in start-mycroft cli to not fail
 source ~/mycroft-core/start-mycroft.sh cli
