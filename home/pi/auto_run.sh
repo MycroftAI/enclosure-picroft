@@ -213,7 +213,7 @@ function setup_wizard() {
             # Set volume between 19% and 99%.  Lazily not allowing 100% :)
             amixer set PCM "${lvl}9%" > /dev/null
             echo -e -n "\b$lvl PLAYING"
-            speak "Test"
+            ~/mycroft-core/mimic/bin/mimic -t "Test"
             ;;
          [Rr])
             echo "Rebooting..."
@@ -222,7 +222,7 @@ function setup_wizard() {
          [Tt])
             amixer set PCM '${lvl}9%' > /dev/null
             echo -e -n "\b$lvl PLAYING"
-            speak "Test"
+            ~/mycroft-core/mimic/bin/mimic -t "Test"
             ;;
          [Dd])
             echo " - Saving"
@@ -421,7 +421,7 @@ function setup_wizard() {
         esac
     done
 
-    if [ $require_sudo -EQ 1 ]
+    if [ $require_sudo -eq 1 ]
     then
         echo "pi ALL=(ALL) ALL" | sudo tee /etc/sudoers.d/010_pi-nopasswd
     fi
