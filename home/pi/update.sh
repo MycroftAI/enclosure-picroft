@@ -22,6 +22,7 @@
 # at https://github.com/MycroftAI/stretch/enclosure-picroft
 
 REPO_PATH="https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/branch/"
+# REPO_PATH="https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/feature/common-commands"
 
 if [ ! -f $REPO_PATH/etc/mycroft/mycroft.conf ] ;
 then

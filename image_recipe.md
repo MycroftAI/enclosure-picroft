@@ -44,7 +44,7 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
 
 ### Install Picroft scripts
 * cd ~
-* wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/feature/common-commands/home/pi/update.sh
+* wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
 * bash update.sh
 
 ##### Enable Autologin as the 'pi' user
