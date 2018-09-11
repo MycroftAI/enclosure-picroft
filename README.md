@@ -1,5 +1,5 @@
 # It's Alive!
-![Lightning over Plexpod](https://github.com/MycroftAI/enclosure-picroft/raw/stretch/lightning.jpg )
+![Lightning over Plexpod](https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/lightning-2018-08-01.jpg )
 
 ## Picroft - 2018-09-11 Stretch Lightning release
 
