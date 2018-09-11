@@ -46,13 +46,16 @@ function network_setup() {
             echo "or plug in a network cable:"
             echo "  1) Basic wifi with SSID and password"
             echo "  2) Wifi with no password"
-            echo "  3) TODO: Advanced wifi"
-            echo "  4) Edit wpa_supplicant.conf directly"
-            echo "  5) Force reboot"
-            echo "  6) Skip network setup for now"
+            echo "  3) Edit wpa_supplicant.conf directly"
+            echo "  4) Force reboot"
+            echo "  5) Skip network setup for now"
             echo -n "Choice [1-6]: "
             show_prompt=0
         fi
+
+        # TODO: Options for WPA 2 Ent, etc?"
+        # See:  https://github.com/MycroftAI/enclosure-picroft/blob/master/setup_eap_wifi.sh
+        # See also:  https://w1.fi/cgit/hostap/plain/wpa_supplicant/wpa_supplicant.conf
 
         read -N1 -s -t 1 pressed
 
@@ -98,22 +101,15 @@ function network_setup() {
             fi
             ;;
          3)
-            echo
-            echo "TODO: Options for WPA 2 Ent, etc"
-            # See:  https://github.com/MycroftAI/enclosure-picroft/blob/master/setup_eap_wifi.sh
-            # See also:  https://w1.fi/cgit/hostap/plain/wpa_supplicant/wpa_supplicant.conf
-            break
-            ;;
-         4)
             sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
             reset_wlan0=5
             break
             ;;
-         5)
+         4)
             should_reboot=1
             break
             ;;
-         6)
+         5)
             should_reboot=0
             break;
             ;;
@@ -177,21 +173,21 @@ function setup_wizard() {
             echo "$key - Analog audio"
             # audio out the analog speaker/headphone jack
             sudo amixer cset numid=3 "1" > /dev/null
-            echo 'sudo amixer cset numid=3 "1"' >> ~/audio_setup.sh
+            echo 'sudo amixer cset numid=3 "1" > /dev/null' >> ~/audio_setup.sh
             break
             ;;
          2)
             echo "$key - HDMI audio"
             # audio out the HDMI port (e.g. TV speakers)
             sudo amixer cset numid=3 "2" > /dev/null
-            echo 'sudo amixer cset numid=3 "2"' >> ~/audio_setup.sh
+            echo 'sudo amixer cset numid=3 "2"  > /dev/null' >> ~/audio_setup.sh
             break
             ;;
          3)
             echo "$key - USB audio"
             # audio out to the USB soundcard
             sudo amixer cset numid=3 "0" > /dev/null
-            echo 'sudo amixer cset numid=3 "0"' >> ~/audio_setup.sh
+            echo 'sudo amixer cset numid=3 "0"  > /dev/null' >> ~/audio_setup.sh
             break
             ;;
         esac
@@ -213,7 +209,7 @@ function setup_wizard() {
             # Set volume between 19% and 99%.  Lazily not allowing 100% :)
             amixer set PCM "${lvl}9%" > /dev/null
             echo -e -n "\b$lvl PLAYING"
-            ~/mycroft-core/mimic/bin/mimic -t "Test"
+            speak "Test"
             ;;
          [Rr])
             echo "Rebooting..."
@@ -222,7 +218,7 @@ function setup_wizard() {
          [Tt])
             amixer set PCM '${lvl}9%' > /dev/null
             echo -e -n "\b$lvl PLAYING"
-            ~/mycroft-core/mimic/bin/mimic -t "Test"
+            speak "Test"
             ;;
          [Dd])
             echo " - Saving"
@@ -235,7 +231,7 @@ function setup_wizard() {
     echo
     echo "The final step is Microphone configuration:"
     echo "As a voice assistant, Mycroft needs to access a microphone to operate."
-   
+
     while true; do
         echo "Please ensure your microphone is connected and select from the following"
         echo "list of microphones:"
@@ -260,7 +256,19 @@ function setup_wizard() {
                 ;;
              3)
                 echo "$key - Google AIY Voice Hat"
-                # TODO: Setup AIY drivers
+                # Get AIY drivers
+                echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
+                wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+                sudo apt-get update
+                sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+                sudo apt-get install aiy-python-wheels
+                sudo apt-get install leds-ktd202x-dkms
+
+                # make soundcard recognizable
+                echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
+                echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+                # TODO: reboot needed?
+
                 break
                 ;;
              4)
@@ -274,6 +282,7 @@ function setup_wizard() {
             esac
         done
 
+        echo
         echo "Testing microphone..."
         echo "In a few seconds you will see some initialization messages, then a prompt"
         echo "to speak.  Say something like 'testing 1 2 3 4 5 6 7 8 9 10'.  After"
@@ -287,6 +296,7 @@ function setup_wizard() {
         ./mycroft-core/start-mycroft.sh audiotest
 
         retry_mic=0
+        echo
         echo "Did you hear the yourself in the audio?"
         echo "  1) Yes!"
         echo "  2) No, let's repeat the test."
@@ -311,7 +321,7 @@ function setup_wizard() {
                 ;;
             esac
         done
-       
+
         if [ $retry_mic -eq 0 ] ; then
             break
         fi
@@ -426,14 +436,22 @@ function setup_wizard() {
         echo "pi ALL=(ALL) ALL" | sudo tee /etc/sudoers.d/010_pi-nopasswd
     fi
 
-    echo "Setup is complete.  Now we'll pull down the latest software updates"
-    echo "and start Mycroft.  You'll be prompted to pair this device with an account at"
-    echo "https://home.mycroft.ai, then you'll be set to enjoy your Picroft!"
+    echo
+    echo "========================================================================="
+    echo
+    echo "That's all, setup is complete!  Now we'll pull down the latest software"
+    echo "updates and start Mycroft.  You'll be prompted to pair this device with"
+    echo "an account at https://home.mycroft.ai, then you'll be set to enjoy your"
+    echo "Picroft!"
     echo
     echo "To rerun this setup, type 'mycroft-setup-wizard' and reboot."
     echo
-    echo "Press any key to continue..."
+    echo "Press any key to launch Mycroft..."
     read -N1 -s anykey
+}
+
+function speak() {
+    ~/mycroft-core/mimic/bin/mimic -t $@
 }
 
 ######################
@@ -458,11 +476,11 @@ echo
 # Read the current mycroft-core version
 source mycroft-core/venv-activate.sh -q
 mycroft_core_ver=$(python -c "import mycroft.version; print('mycroft-core: '+mycroft.version.CORE_VERSION_STR)" && echo "steve" | grep -o "mycroft-core:.*")
-mycroft_core_branch=$(cd mycroft-core && git branch | grep -o " .*")
+mycroft_core_branch=$(cd mycroft-core && git branch | grep -o "/* .*")
 
 echo "***********************************************************************"
 echo "** Picroft enclosure platform version:" $(<version)
-echo "**                       $mycroft_core_ver ($mycroft_core_branch )"
+echo "**                       $mycroft_core_ver ( ${mycroft_core_branch/* /} )"
 echo "***********************************************************************"
 sleep 2  # give user a few moments to notice the version
 
@@ -539,8 +557,44 @@ then
     # Look for internet connection.
     if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
     then
+        echo "**** Checking for updates to Picroft environment"
+        cd /tmp
+        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
+        if [ $? -eq 0 ]
+        then
+            if [ ! -f ~/version ] ; then
+                echo "unknown" > ~/version
+            fi
+
+            cmp /tmp/version ~/version
+            if  [ $? -eq 1 ]
+            then
+                # Versions don't match...update needed
+                echo "**** Update found, downloadling new Picroft scripts!"
+                speak "Updating Picroft, please hold on."
+
+                # Stop interactive parts of mycroft, as we don't
+                # want the user interacting with it while updating.
+                sudo service mycroft-skills stop
+
+                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+                if [ $? -eq 0 ]
+                then
+                    source update.sh
+                    cp /tmp/version ~/version
+
+                    # restart
+                    echo "Restarting..."
+                    speak "Update complete, restarting."
+                    sudo reboot now
+                else
+                    echo "ERROR: Failed to download update script."
+                fi
+            fi
+        fi
+
         # TODO: Skip update check if done recently?
-        echo "Updating mycroft-core..."
+        echo -n "Checking for mycroft-core updates..."
         cd ~/mycroft-core
         git pull
         cd ~
@@ -548,35 +602,12 @@ then
 
     # Launch Mycroft Services ======================
     source ~/mycroft-core/start-mycroft.sh all &
-
-    # check to see if the unit has been registered yet
-    IDENTITY_FILE="/home/pi/.mycroft/identity/identity2.json"
-    if [ -f $IDENTITY_FILE ]
-    then
-        IDENTITY_FILE_SIZE=$(stat -c%s $IDENTITY_FILE)
-    else
-        IDENTITY_FILE_SIZE=0
-    fi
-
-    echo
-    if [ $IDENTITY_FILE_SIZE -lt 100 ]
-    then
-        # invoke the pairing process
-        echo "This unit needs to be registered.  Use your computer or mobile device"
-        echo "to browse to https://home.mycroft.ai and enter the pairing code"
-        echo "displayed below."
-        sleep 10
-        mycroft-say-to "pair my device" >/dev/null 2>&1 &
-    else
-        echo "Mycroft is currently running in the background, so you can say"
-        echo "'Hey Mycroft' to activate it. Try saying 'Hey Mycroft, what time is it'"
-        echo "to test the system."
-    fi
 else
     # running in SSH session
     echo
 fi
 
+echo
 mycroft-help
 
 echo
@@ -584,7 +615,7 @@ echo "***********************************************************************"
 echo "In a few moments you will see the contents of the speech log.  Hit"
 echo "Ctrl+C to stop showing the log and return to the Linux command line."
 echo "Mycroft will continue running in the background for voice interaction."
-echo "***********************************************************************"
+echo
 
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli

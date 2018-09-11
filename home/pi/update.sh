@@ -59,11 +59,18 @@ then
     echo "tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0" | sudo tee -a /etc/fstab
     
     # Download and setup Mycroft-core
-    sudo apt-get install git
+    sudo apt-get install git -y
     git clone https://github.com/MycroftAI/mycroft-core.git
     cd mycroft-core
-    git checkout master
-    bash dev_setup.sh
+    # git checkout master
+    echo
+    echo "Beginning building mycroft-core.  This'll take a bit,"
+    echo "take a break.  Results will be in the ~/build.log"
+    bash dev_setup.sh -y &2> ~/build.log
+    echo "Build complete.  Press any key to review the output before it is deleted."
+    read -N1 -s key
+    nano ~/build.log
+    rm ~/build.log
 fi
 
 # update software

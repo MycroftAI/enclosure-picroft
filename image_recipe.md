@@ -42,27 +42,41 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
   AcceptEnv LANG LC_*
   ```
 
-### Install Picroft scripts
+### Connect to the network
+* Either plug in Ethernet or
+  * ```sudo nano /etc/wpa_supplicant/wpa_supplicant.conf```
+  * Enter network creds:
+    ```
+    network={
+            ssid="NETWORK"
+            psk="WIFI_PASSWORD"  # for one with password
+            key_mgmt=NONE        # for open
+    }
+    ```
+
+## Install Picroft scripts
 * cd ~
 * wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
 * bash update.sh
 
+**The update.sh script will perform all of the following steps in this section...**
+
 ##### Enable Autologin as the 'pi' user
 
-* ```sudo nano /etc/systemd/system/getty@tty1.service.d/autologin.conf```
-
-* Enter:
-```
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin pi --noclear %I     38400 linux
-```
+* ```sudo nano /etc/systemd/system/getty@tty1.service.d/autologin.conf``` and enter:
+   ```
+   [Service]
+   ExecStart=
+   ExecStart=-/sbin/agetty --autologin pi --noclear %I     38400 linux
+   ```
 
 * ```sudo systemctl enable getty@tty1.service```
 
 ##### Create RAM disk and point to it
-  - ```sudo nano /etc/fstab```
-    - Add: ```tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0```
+  - ```sudo nano /etc/fstab``` and add the line:
+    ```
+    tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0
+    ```
    
 
 ##### Environment setup (part of update.sh)
@@ -95,7 +109,5 @@ ExecStart=-/sbin/agetty --autologin pi --noclear %I     38400 linux
 * Run ```. ~/bin/mycroft-wipe```
 * Remove the SD card
 * Create an IMG file named "raspbian-stretch_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
-* Compress the IMG using Pishrink.sh
+* Compress the IMG using pishrink.sh
 * Upload and adjust redirect link from https://mycroft.ai/picroft-image or https://mycroft.ai/picroft-unstable
-
-
