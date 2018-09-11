@@ -1,48 +1,56 @@
-# Welcome
+# It's Alive!
+![Lightning over Plexpod](https://github.com/MycroftAI/enclosure-picroft/raw/stretch/lightning.jpg )
 
-## Picroft - 2018-08-01 Stretch Lightning release
+## Picroft - 2018-09-11 Stretch Lightning release
 
-The Picroft project is an enclosure for a stock Raspberry Pi connected to a speaker and basic USB microphone.  This is built around a Raspbian Jessie Lite installation.  The entire project is available as a pre-built micro-SD image ready to be burned and placed into a Raspberry Pi.  You can download the pre-built image here:
+Picroft is an enclosure for a Raspberry Pi 3 or 3B+ connected to a speaker and
+microphone, bringing Mycroft to anyone who wants a simple voice interface they
+have complete control over.  This is built on top of the officiall Raspbian Stretch
+Lite image.
+
+The entire project is available as a pre-built micro-SD image ready to be burned
+and placed into a Raspberry Pi. You can download the pre-built image here:
 
  [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 2018-3-14 image](https://mycroft.ai/to/picroft-unstable)
- 
-SHA256 checksum for the `raspbian-stretch_Picroft_2018-08-01_preview.zip` image:
-```TODO```
+
+SHA256 checksum: TODO
+
+Optionally you can build it  yourself by following the [Recipe for building the image](image_recipe.md)
 
 ## Requirements
 
-* Raspberry Pi 3 or 3B+
+* **Raspberry Pi 3 or 3B+**
   <br>_Older Raspberry Pi versions do not have sufficient processing power, and if they work they will be very slow_
-* MicroSD Card (8 GB or larger)
-* HDMI Monitor and Keyboard
-  <br>Only required during setup
-* Speaker.
+* **Speaker**
   <br>Any analog speaker, or an HDMI monitor with speaker
-* USB Microphone.
-  <br>Tested with: PlayStation Eye and CM108-based microphones.
+* **Microphone**
+  <br>Tested with: PlayStation Eye, Blue Snowball, Google AIY
+* **2.5 Amp or better power supply**
+  <br>Don't skimp on this!  It might appear to work, but you'll have weird issues with a cheapo supply.
+* **MicroSD Card**
+  <br>8 GB or larger
+* HDMI Monitor and keyboard, only required during setup
 
 
 ## Installation
 
-1) Download and burn the image to the SD card (see below)
+1) Download and burn the image to the SD card.<br/>See the RaspberryPi.org's guide to [Installing Operating System Images](https://www.raspberrypi.org/documentation/installation/installing-images/) for detailed instructions on how to burn an image to your SD card.
 2) Insert the SD card into your Raspberry Pi
-3) Connect speaker, microphone, and monitor
+3) Connect speaker, microphone, monitor and keyboard
 4) Apply power
 5) Follow the on-screen prompts to setup Picroft
 6) Follow the verbal prompts to pair your device to an account at [Mycroft Home](http://home.mycroft.ai/#/device/add)
 7) Talk to Mycroft and enjoy!
 
-See the RaspberryPi.org's [Installing Operating System Images](https://www.raspberrypi.org/documentation/installation/installing-images/) for detailed instructions.
-
 ## Usage
 
-Simply speak to Picroft as you would to any Mycroft implementation.  For example:
+Simply speak to Picroft as you would to any Mycroft.  For example:
 
     "Hey Mycroft, what time is it?"
     "Mycroft, how tall was Abraham Lincoln?"
 
 
-## Old Versions
+## Older Versions
 * [Raspbian Jessie version](https://github.com/MycroftAI/enclosure-picroft/tree/master)
 
 ## Help and more info
@@ -59,7 +67,18 @@ There is an active *Picroft* community within the [Mycroft's Mattermost chat](ht
 
 ---
 
-See also: [Recipe for building the image](image_recipe.md)
+### FAQ
+##### Q1) Why "Stretch Lightning"?
+Because the image is built on Raspbian Stretch, and the lightning seen above was captured from the roof
+to building the night I started this rework.
 
+##### Q2) Can I run this with a the Raspbian desktop GUI?
+Sadly, not really.  A Raspberry Pi is powerful, but still not well suited to do _everything_ at
+once.  You can add other basic services on top of Picroft, but the desktop GUI requires too many
+additional resources and neither Mycroft nor the GUI end up running well.
+   
+##### Q2) Can I run this with anything else?
+Depends on what you want to add.  Serving simple webpages or polling devices periodically is probably
+fine.  Mining bitcoin won't.
 
 

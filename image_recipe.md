@@ -36,21 +36,56 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
       - P2 SSH
           - Pick *Yes*
 
-### Enable Autologin as the 'pi' user
+### Set the device to not use locale settings provided by ssh
+* ```sudo nano /etc/ssh/sshd_config``` and comment out the line (prefix with '#')
+  ```
+  AcceptEnv LANG LC_*
+  ```
 
-* ```sudo nano /etc/systemd/system/getty@tty1.service.d/autologin.conf```
+### Connect to the network
+* Either plug in Ethernet or
+  * ```sudo nano /etc/wpa_supplicant/wpa_supplicant.conf```
+  * Enter network creds:
+    ```
+    network={
+            ssid="NETWORK"
+            psk="WIFI_PASSWORD"  # for one with password
+            key_mgmt=NONE        # for open
+    }
+    ```
 
-* Enter:
-```
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin <user> --noclear %I     38400 linux
-```
+## Install Picroft scripts
+* cd ~
+* wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+* bash update.sh
+
+**The update.sh script will perform all of the following steps in this section...**
+
+##### Enable Autologin as the 'pi' user
+
+* ```sudo nano /etc/systemd/system/getty@tty1.service.d/autologin.conf``` and enter:
+   ```
+   [Service]
+   ExecStart=
+   ExecStart=-/sbin/agetty --autologin pi --noclear %I     38400 linux
+   ```
 
 * ```sudo systemctl enable getty@tty1.service```
 
+##### Create RAM disk and point to it
+  - ```sudo nano /etc/fstab``` and add the line:
+    ```
+    tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0
+    ```
+   
 
-### Customize .bashrc for startup
+##### Environment setup (part of update.sh)
+
+* ```sudo mkdir /etc/mycroft```
+* ```sudo nano /etc/mycroft/mycroft.conf```
+* mkdir ~/bin
+
+##### Customize .bashrc for startup
 * ```nano ~/.bashrc```
    uncomment *#alias ll='ls -l'* near the bottom of the file
    at the bottom add:
@@ -61,32 +96,12 @@ ExecStart=-/sbin/agetty --autologin <user> --noclear %I     38400 linux
    source ~/auto_run.sh
    ```
 
-### Environment setup
-
-* ```sudo mkdir /etc/mycroft```
-* ```sudo nano /etc/mycroft/mycroft.conf```
-  (copy from web, disable the RAMDISK for the moment)
-
-* mkdir ~/bin
-
-### Create RAM disk and point to it
-  - ```sudo nano /etc/fstab```
-    - Add: ```tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0```
-  - ```sudo nano /etc/mycroft/mycroft.conf```
-    - Add: ```"ipc_path": "/ramdisk/mycroft/ipc/"```
-    
-### Set the device to not use locale settings provided by ssh
-* ```sudo nano /etc/ssh/sshd_config``` and comment out the line (prefix with '#')
-   ```
-   AcceptEnv LANG LC_*
-   ```
-     
-### Install git and mycroft-core
+##### Install git and mycroft-core
 * ```sudo apt-get install git```
-  ```git clone https://github.com/MycroftAI/mycroft-core.git```
-  ```cd mycroft-core```
-  ```git checkout master```
-  ```bash dev_setup.sh```
+* ```git clone https://github.com/MycroftAI/mycroft-core.git```
+* ```cd mycroft-core```
+* ```git checkout master```
+* ```bash dev_setup.sh```
 
 (Wait an hour on a RPi3B+)
 
@@ -94,7 +109,5 @@ ExecStart=-/sbin/agetty --autologin <user> --noclear %I     38400 linux
 * Run ```. ~/bin/mycroft-wipe```
 * Remove the SD card
 * Create an IMG file named "raspbian-stretch_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
-* Compress the IMG using Pishrink.sh
+* Compress the IMG using pishrink.sh
 * Upload and adjust redirect link from https://mycroft.ai/picroft-image or https://mycroft.ai/picroft-unstable
-
-
