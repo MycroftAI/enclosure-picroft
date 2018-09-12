@@ -32,14 +32,13 @@ then
     case $key in
       [Yy])
         ;;
-            
+
       *)
         echo "Aborting install."
         exit
         ;;
     esac
 
-    
     # Create basic folder structures
     sudo mkdir /etc/mycroft/
     mkdir ~/bin
@@ -56,20 +55,24 @@ then
 
     # Create RAM disk (the Picroft version of mycroft.conf point at it)
     echo "tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0" | sudo tee -a /etc/fstab
-    
+
     # Download and setup Mycroft-core
+    echo "Installing 'git'..."
     sudo apt-get install git -y
+
+    echo "Downloading 'mycroft-core'..."
+    cd ~
     git clone https://github.com/MycroftAI/mycroft-core.git
     cd mycroft-core
     # git checkout master
+
     echo
     echo "Beginning building mycroft-core.  This'll take a bit,"
     echo "take a break.  Results will be in the ~/build.log"
-    bash dev_setup.sh -y &2> ~/build.log
+    bash dev_setup.sh -y 2>&1 | tee ../build.log
     echo "Build complete.  Press any key to review the output before it is deleted."
     read -N1 -s key
-    nano ~/build.log
-    rm ~/build.log
+    nano ../build.log
 fi
 
 # update software
