@@ -56,7 +56,7 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
 
 ## Install Picroft scripts
 * cd ~
-* wget -N https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+* wget -N https://rawgit.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
 * bash update.sh
 
 **The update.sh script will perform all of the following steps in this section...**
