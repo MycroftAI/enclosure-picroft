@@ -216,13 +216,9 @@ function setup_wizard() {
 
             # make changes to  mycroft.conf
             sudo sed -i \
-                -e "play_wav_cmdline": "aplay -Dhw:0,0 %1" \
-                -e "play_wav_cmdline": "aplay %1" \
-		/etc/mycroft/mycroft.conf
-            sudo sed -i \
-                -e "play_mp3_cmdline": "mpg123 -a hw:0,0 %1" \
-                -e "play_mp3_cmdline": "mpg123 %1" \
-		/etc/mycroft/mycroft.conf
+                -e "s/^aplay -Dhw:0,0 %1/aplay %1" \
+                -e "s/mpg123 -a hw:0,0 %1/mpg123 %1" \
+                /etc/mycroft/mycroft.conf
 
             # Install asound.conf
             cp AIY-asound.conf /etc/asound.conf
