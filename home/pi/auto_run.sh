@@ -216,12 +216,12 @@ function setup_wizard() {
 
             # make changes to  mycroft.conf
             sudo sed -i \
-                -e "s/^aplay -Dhw:0,0 %1/aplay %1" \
-                -e "s/mpg123 -a hw:0,0 %1/mpg123 %1" \
+                -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
+                -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
                 /etc/mycroft/mycroft.conf
 
             # Install asound.conf
-            cp AIY-asound.conf /etc/asound.conf
+            sudo cp AIY-asound.conf /etc/asound.conf
 
             # rebuild venv
             mycroft-core/dev_setup
