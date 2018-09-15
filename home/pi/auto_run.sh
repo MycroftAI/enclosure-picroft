@@ -196,8 +196,8 @@ function setup_wizard() {
             # Get AIY drivers
             echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
             wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-            sudo apt-get update
 
+            sudo apt-get update
             # hack to get aiy-io-mcu-firmware to be installed
             sudo mkdir /usr/lib/systemd/system
 
@@ -207,18 +207,31 @@ function setup_wizard() {
             sudo apt-get install leds-ktd202x-dkms
 
             # make soundcard recognizable
-            sed -i \
+            sudo sed -i \
                 -e "s/^dtparam=audio=on/#\0/" \
                 -e "s/^#\(dtparam=i2s=on\)/\1/" \
                 /boot/config.txt
-            echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
-            echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+            sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
+            sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+
+            # make changes to  mycroft.conf
+            sudo sed -i \
+                -e "play_wav_cmdline": "aplay -Dhw:0,0 %1" \
+                -e "play_wav_cmdline": "aplay %1" \
+		/etc/mycroft/mycroft.conf
+            sudo sed -i \
+                -e "play_mp3_cmdline": "mpg123 -a hw:0,0 %1" \
+                -e "play_mp3_cmdline": "mpg123 %1" \
+		/etc/mycroft/mycroft.conf
 
             # Install asound.conf
             cp AIY-asound.conf /etc/asound.conf
 
+            # rebuild venv
+            mycroft-core/dev_setup
+
             # TODO: reboot needed?
-            # YES reboot neded ! 
+            # YES reboot neded !
             echo "Reboot is neded !"
             break
             ;;
@@ -639,3 +652,4 @@ echo
 
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli
+
