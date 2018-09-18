@@ -165,7 +165,8 @@ function setup_wizard() {
     echo "  1) Speakers via 3.5mm output (aka 'audio jack' or 'headphone jack')"
     echo "  2) HDMI audio (e.g. a TV or monitor with built-in speakers)"
     echo "  3) USB audio (e.g. a USB soundcard or USB mic/speaker combo)"
-    echo -n "Choice [1-3]: "
+    echo "  4) Google AIY Voice HAT and microphone board (Voice Kit v1)"
+    echo -n "Choice [1-4]: "
     while true; do
         read -N1 -s key
         case $key in
@@ -190,6 +191,47 @@ function setup_wizard() {
             echo 'sudo amixer cset numid=3 "0"  > /dev/null' >> ~/audio_setup.sh
             break
             ;;
+         4)
+            echo "$key - Google AIY Voice HAT and microphone board (Voice Kit v1)"
+            # Get AIY drivers
+            echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
+            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+
+            sudo apt-get update
+            # hack to get aiy-io-mcu-firmware to be installed
+            sudo mkdir /usr/lib/systemd/system
+
+            sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
+            sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+            sudo apt-get install aiy-python-wheels
+            sudo apt-get install leds-ktd202x-dkms
+
+            # make soundcard recognizable
+            sudo sed -i \
+                -e "s/^dtparam=audio=on/#\0/" \
+                -e "s/^#\(dtparam=i2s=on\)/\1/" \
+                /boot/config.txt
+            sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
+            sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+
+            # make changes to  mycroft.conf
+            sudo sed -i \
+                -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
+                -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
+                /etc/mycroft/mycroft.conf
+
+            # Install asound.conf
+            sudo cp AIY-asound.conf /etc/asound.conf
+
+            # rebuild venv
+            mycroft-core/dev_setup
+
+            # TODO: reboot needed?
+            # YES reboot neded !
+            echo "Reboot is neded !"
+            break
+            ;;
+
         esac
     done
 
@@ -198,7 +240,7 @@ function setup_wizard() {
     echo "Let's test and adjust the volume:"
     echo "  1-9) Set volume level (1-quietest, 9=loudest)"
     echo "  T)est"
-    echo "  R)eboot (might be needed if you just plugged in a USB speaker)"
+    echo "  R)eboot (needed if you just installed Google Voice Hat or plugged in a USB speaker)"
     echo "  D)one!"
     while true; do
         echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
@@ -256,19 +298,6 @@ function setup_wizard() {
                 ;;
              3)
                 echo "$key - Google AIY Voice Hat"
-                # Get AIY drivers
-                echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
-                wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-                sudo apt-get update
-                sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-                sudo apt-get install aiy-python-wheels
-                sudo apt-get install leds-ktd202x-dkms
-
-                # make soundcard recognizable
-                echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
-                echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
-                # TODO: reboot needed?
-
                 break
                 ;;
              4)
@@ -619,3 +648,4 @@ echo
 
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli
+
