@@ -201,10 +201,13 @@ function setup_wizard() {
             # hack to get aiy-io-mcu-firmware to be installed
             sudo mkdir /usr/lib/systemd/system
 
-            sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
-            sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-            sudo apt-get install aiy-python-wheels
-            sudo apt-get install leds-ktd202x-dkms
+            sudo apt-get -y install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
+            sudo apt-get -y install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+            sudo apt-get -y install aiy-python-wheels
+            sudo apt-get -y install leds-ktd202x-dkms
+
+            # we need pulseaudio
+            sudo apt-get -y install pulseaudio
 
             # make soundcard recognizable
             sudo sed -i \
@@ -213,6 +216,13 @@ function setup_wizard() {
                 /boot/config.txt
             sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
             sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+
+            sudo grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
+              sudo echo "dtoverlay=i2s-mmap" >> /boot/config.txt
+            sudo grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
+              sudo echo "dtoverlay=googlevoicehat-soundcard" >> /boot/config.txt
+            sudo grep -q "dtparam=i2s=on" /boot/config.txt || \
+              sudo echo "dtparam=i2s=on" >> /boot/config.txt
 
             # make changes to  mycroft.conf
             sudo sed -i \
