@@ -214,9 +214,6 @@ function setup_wizard() {
                 -e "s/^dtparam=audio=on/#\0/" \
                 -e "s/^#\(dtparam=i2s=on\)/\1/" \
                 /boot/config.txt
-            sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
-            sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
-
             sudo grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
               sudo echo "dtoverlay=i2s-mmap" >> /boot/config.txt
             sudo grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
