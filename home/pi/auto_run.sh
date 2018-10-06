@@ -196,8 +196,9 @@ function setup_wizard() {
             # Get AIY drivers
             echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
             wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-
-            sudo apt-get update
+                
+            sudo apt-get -y update
+            sudo apt-get -y upgrade
             # hack to get aiy-io-mcu-firmware to be installed
             sudo mkdir /usr/lib/systemd/system
 
