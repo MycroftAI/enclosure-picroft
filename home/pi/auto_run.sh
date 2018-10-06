@@ -214,12 +214,12 @@ function setup_wizard() {
                 -e "s/^dtparam=audio=on/#\0/" \
                 -e "s/^#\(dtparam=i2s=on\)/\1/" \
                 /boot/config.txt
-            sudo grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
-              sudo echo "dtoverlay=i2s-mmap" >> /boot/config.txt
-            sudo grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
-              sudo echo "dtoverlay=googlevoicehat-soundcard" >> /boot/config.txt
-            sudo grep -q "dtparam=i2s=on" /boot/config.txt || \
-              sudo echo "dtparam=i2s=on" >> /boot/config.txt
+            grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
+              sudo sh -c "echo 'dtoverlay=i2s-mmap' >> /boot/config.txt"
+            grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
+              sudo sh -c "echo 'dtoverlay=googlevoicehat-soundcard' >> /boot/config.txt"
+            grep -q "dtparam=i2s=on" /boot/config.txt || \
+              sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
 
             # make changes to  mycroft.conf
             sudo sed -i \
