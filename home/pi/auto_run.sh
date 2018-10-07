@@ -194,52 +194,55 @@ function setup_wizard() {
          4)
             echo "$key - Google AIY Voice HAT and microphone board (Voice Kit v1)"
             # Get AIY drivers
-            echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
-            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-                
-            sudo apt-get -y update
-            sudo apt-get -y upgrade
-            # hack to get aiy-io-mcu-firmware to be installed
-            sudo mkdir /usr/lib/systemd/system
+            if [ ! -f /etc/apt/sources.list.d/aiyprojects.list ]; then
+            
+                echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
+                wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+                    
+                sudo apt-get -y update
+                sudo apt-get -y upgrade
+                # hack to get aiy-io-mcu-firmware to be installed
+                sudo mkdir /usr/lib/systemd/system
 
-            sudo apt-get -y install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
-            sudo apt-get -y install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-            sudo apt-get -y install aiy-python-wheels
-            sudo apt-get -y install leds-ktd202x-dkms
+                sudo apt-get -y install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
+                sudo apt-get -y install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+                sudo apt-get -y install aiy-python-wheels
+                sudo apt-get -y install leds-ktd202x-dkms
 
-            # we need pulseaudio
-            sudo apt-get -y install pulseaudio
+                # we need pulseaudio
+                sudo apt-get -y install pulseaudio
 
-            # make soundcard recognizable
-            sudo sed -i \
-                -e "s/^dtparam=audio=on/#\0/" \
-                -e "s/^#\(dtparam=i2s=on\)/\1/" \
-                /boot/config.txt
-            grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
-              sudo sh -c "echo 'dtoverlay=i2s-mmap' >> /boot/config.txt"
-            grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
-              sudo sh -c "echo 'dtoverlay=googlevoicehat-soundcard' >> /boot/config.txt"
-            grep -q "dtparam=i2s=on" /boot/config.txt || \
-              sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
+                # make soundcard recognizable
+                sudo sed -i \
+                    -e "s/^dtparam=audio=on/#\0/" \
+                    -e "s/^#\(dtparam=i2s=on\)/\1/" \
+                    /boot/config.txt
+                grep -q "dtoverlay=i2s-mmap" /boot/config.txt || \
+                sudo sh -c "echo 'dtoverlay=i2s-mmap' >> /boot/config.txt"
+                grep -q "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || \
+                sudo sh -c "echo 'dtoverlay=googlevoicehat-soundcard' >> /boot/config.txt"
+                grep -q "dtparam=i2s=on" /boot/config.txt || \
+                sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
 
-            # make changes to  mycroft.conf
-            sudo sed -i \
-                -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
-                -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
-                /etc/mycroft/mycroft.conf
+                # make changes to  mycroft.conf
+                sudo sed -i \
+                    -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
+                    -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
+                    /etc/mycroft/mycroft.conf
 
-            # Install asound.conf
-            sudo cp AIY-asound.conf /etc/asound.conf
+                # Install asound.conf
+                sudo cp AIY-asound.conf /etc/asound.conf
 
-            # rebuild venv
-            mycroft-core/dev_setup
+                # rebuild venv
+                mycroft-core/dev_setup
 
-            # TODO: reboot needed?
-            # YES reboot neded !
-            echo "Reboot is neded !"
-            break
-            ;;
-
+                # TODO: reboot needed?
+                # YES reboot neded !
+                echo "Reboot is neded !"
+                break
+                ;;
+            fi
+            
         esac
     done
 
