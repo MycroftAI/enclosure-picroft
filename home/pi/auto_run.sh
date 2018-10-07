@@ -240,7 +240,7 @@ function setup_wizard() {
                 # YES reboot neded !
                 echo "Reboot is neded !"
                 break
-                ;;
+                #;;
             fi
             
         esac
