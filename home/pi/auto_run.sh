@@ -194,7 +194,7 @@ function setup_wizard() {
          4)
             echo "$key - Google AIY Voice HAT and microphone board (Voice Kit v1)"
             # Get AIY drivers
-            echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee -a /etc/apt/sources.list.d/aiyprojects.list
+            echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
             wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 
             sudo apt-get update
@@ -211,8 +211,8 @@ function setup_wizard() {
                 -e "s/^dtparam=audio=on/#\0/" \
                 -e "s/^#\(dtparam=i2s=on\)/\1/" \
                 /boot/config.txt
-            sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
-            sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+            grep -q -F "dtoverlay=i2s-mmap" /boot/config.txt || sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
+            grep -q -F "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
 
             # make changes to  mycroft.conf
             sudo sed -i \
