@@ -110,4 +110,4 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
 * Remove the SD card
 * Create an IMG file named "raspbian-stretch_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
 * Compress the IMG using pishrink.sh
-* Upload and adjust redirect link from https://mycroft.ai/picroft-image or https://mycroft.ai/picroft-unstable
+* Upload and adjust redirect link from https://mycroft.ai/to/picroft-image or https://mycroft.ai/to/picroft-unstable
