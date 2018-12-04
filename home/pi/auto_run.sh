@@ -622,9 +622,8 @@ then
         pulseaudio -k
         pactl set-default-source 2
         pulseaudio --start
-        amixer
         amixer set Master 99%
-        amixer
+        echo "amixer set Master 99%" >> audio_setup.sh
         sleep 2
         amixer
 
