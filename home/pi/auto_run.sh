@@ -282,7 +282,7 @@ function setup_wizard() {
         echo "  3) Google AIY Voice HAT and microphone board (Voice Kit v1)"
         echo "  4) Matrix Voice HAT."
         echo "  5) Other (unsupported -- good luck!)"
-        echo -n "Choice [1-4]: "
+        echo -n "Choice [1-5]: "
         echo
         while true; do
             read -N1 -s key
@@ -574,7 +574,7 @@ then
         echo ""
         echo "========================================================================="
         echo "Setting up Matrix Voice Hat. This will install the matrixio-kernel-modules and pulseaudio"
-        echo "This will require 3 reboots"
+        echo "This process is automatic, but requires rebooting three times. Please be patient"
         echo "Press any key to continue..."
         read -N1 -s anykey
     else
@@ -584,7 +584,7 @@ then
 
     if [ ! -f matrix_setup_state.txt ]
     then
-        echo "Add Matrix repo and key and Update and install packages"
+        echo "Adding Matrix repo and installing packages..."
         # add repo
         curl https://apt.matrix.one/doc/apt-key.gpg | sudo apt-key add -
         echo "deb https://apt.matrix.one/raspbian $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/matrixlabs.list
@@ -592,7 +592,7 @@ then
         sudo apt-get upgrade -y
 
         echo "stage-1" > matrix_setup_state.txt
-        echo "Needs to reboot in case of kernel updates"
+        echo "Rebooting to apply kernel updates, the installation will resume afterwards"
         read -p "Press enter to continue reboot"
         sudo reboot
     else
@@ -601,13 +601,13 @@ then
 
     if [ $matrix_setup_state == "stage-1" ]
     then
-        echo "installing matcixio-kernel-modules"
+        echo "Installing matrixio-kernel-modules..."
         sudo apt install matrixio-kernel-modules -y
 
         echo "installing pulseaudio"
         sudo apt-get install pulseaudio -y
         
-        echo "Need to reboot after installing matcixio-kernel-modules and pulseaudio"
+        echo "Rebooting to apply audio subsystem changes, the installation will continue afterwards."
         read -p "Press enter to continue reboot"
         echo "stage-2" > matrix_setup_state.txt
         sudo reboot
@@ -615,7 +615,7 @@ then
 
     if [ $matrix_setup_state == "stage-2" ]
     then
-        echo "setting Matrix as standard microphone..."
+        echo "Setting Matrix as standard microphone..."
         echo "========================================================================="
         pactl list sources short
         sleep 5
@@ -633,11 +633,11 @@ then
         read -p "You should have heard the recording playback. Press enter to continue"
 
         echo "========================================================================="
-        echo "updating the python virtual environment"
+        echo "Updating the python virtual environment"
         bash mycroft-core/dev_setup.sh
 
         echo "stage-3" > matrix_setup_state.txt
-        read -p "Press enter to continue reboot! this should be the last one"
+        read -p "Your Matrix microphone is now setup! Press enter to perform the final reboot and start Mycroft."
         sudo reboot
     fi
 
