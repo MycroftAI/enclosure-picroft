@@ -158,6 +158,12 @@ function setup_wizard() {
         sudo reboot
     fi
 
+    # installs pulseaudio if it does not exist
+    if [ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 0 ];
+    then
+        sudo apt-get install pulseaudio -y
+    fi
+
     echo
     echo "========================================================================="
     echo "HARDWARE SETUP"
@@ -203,7 +209,9 @@ function setup_wizard() {
 
             sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
             sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-            sudo apt-get install aiy-python-wheels
+            # Comment this out to get AIY download working
+            # https://community.mycroft.ai/t/setting-up-aiy-python-wheels-protobuf-not-supported-on-armv6-1/5130/2
+            # sudo apt-get install aiy-python-wheels
             sudo apt-get install leds-ktd202x-dkms
 
             # make soundcard recognizable
@@ -249,7 +257,7 @@ function setup_wizard() {
          [1-9])
             lvl=$key
             # Set volume between 19% and 99%.  Lazily not allowing 100% :)
-            amixer set PCM "${lvl}9%" > /dev/null
+            amixer set Master "${lvl}9%" > /dev/null
             echo -e -n "\b$lvl PLAYING"
             speak "Test"
             ;;
@@ -258,7 +266,7 @@ function setup_wizard() {
             sudo reboot
             ;;
          [Tt])
-            amixer set PCM '${lvl}9%' > /dev/null
+            amixer set Master '${lvl}9%' > /dev/null
             echo -e -n "\b$lvl PLAYING"
             speak "Test"
             ;;

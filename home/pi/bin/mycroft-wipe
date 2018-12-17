@@ -68,6 +68,10 @@ case $key in
       echo "update_config=1" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
       echo "country=US" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
 
+      # wipe ssh keys and regenerate new ones
+      sudo rm /etc/ssh/ssh_host_*
+      sudo dpkg-reconfigure openssh-server
+
       # Reset to run setup next boot
       touch ~/first_run
 
