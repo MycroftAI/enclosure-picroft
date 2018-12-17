@@ -280,8 +280,9 @@ function setup_wizard() {
         echo "  1) PlayStation Eye (USB)"
         echo "  2) Blue Snoball ICE (USB)"
         echo "  3) Google AIY Voice HAT and microphone board (Voice Kit v1)"
-        echo "  4) Other (unsupported -- good luck!)"
-        echo -n "Choice [1-4]: "
+        echo "  4) Matrix Voice HAT."
+        echo "  5) Other (unsupported -- good luck!)"
+        echo -n "Choice [1-5]: "
         echo
         while true; do
             read -N1 -s key
@@ -301,6 +302,16 @@ function setup_wizard() {
                 break
                 ;;
              4)
+                echo "$key - Matrix Voice Hat"
+                echo "The setup script for Matrix Voice Hat will run at the end of"
+                echo "The setup wizard. Press any key to continue..."
+                read -N1 -s anykey
+                touch setup_matrix  # setting flag to run setup_matrix_voice.sh
+                skip_mic_test=true
+                skip_last_prompt=true
+                break
+                ;;
+             5)
                 echo "$key - Other"
                 echo "Other microphone _might_ work, but there are no guarantees."
                 echo "We'll run the tests, but you are on your own.  If you have"
@@ -311,47 +322,52 @@ function setup_wizard() {
             esac
         done
 
-        echo
-        echo "Testing microphone..."
-        echo "In a few seconds you will see some initialization messages, then a prompt"
-        echo "to speak.  Say something like 'testing 1 2 3 4 5 6 7 8 9 10'.  After"
-        echo "10 seconds, the sound heard through the microphone will be played back."
-        echo
-        echo "Press any key to begin the test..."
-        sleep 1
-        read -N1 -s key
-
-        # Launch mycroft-core audio test
-        ./mycroft-core/start-mycroft.sh audiotest
-
-        retry_mic=0
-        echo
-        echo "Did you hear the yourself in the audio?"
-        echo "  1) Yes!"
-        echo "  2) No, let's repeat the test."
-        echo "  3) No :(   Let's move on and I'll mess with the microphone later."
-        echo -n "Choice [1-3]: "
-        while true; do
+        if [ ! $skip_mic_test ]; then
+            echo
+            echo "Testing microphone..."
+            echo "In a few seconds you will see some initialization messages, then a prompt"
+            echo "to speak.  Say something like 'testing 1 2 3 4 5 6 7 8 9 10'.  After"
+            echo "10 seconds, the sound heard through the microphone will be played back."
+            echo
+            echo "Press any key to begin the test..."
+            sleep 1
             read -N1 -s key
-            case $key in
-             [1])
-                echo "$key - Yes, good to go"
-                break
-                ;;
-             [2])
-                echo "$key - No, trying again"
-                echo
-                retry_mic=1
-                break
-                ;;
-             [3])
-                echo "$key - No, I give up and will use command line only (for now)!"
-                break
-                ;;
-            esac
-        done
 
-        if [ $retry_mic -eq 0 ] ; then
+            # Launch mycroft-core audio test
+            ./mycroft-core/start-mycroft.sh audiotest
+
+            retry_mic=0
+            echo
+            echo "Did you hear the yourself in the audio?"
+            echo "  1) Yes!"
+            echo "  2) No, let's repeat the test."
+            echo "  3) No :(   Let's move on and I'll mess with the microphone later."
+            echo -n "Choice [1-3]: "
+            while true; do
+                read -N1 -s key
+                case $key in
+                [1])
+                    echo "$key - Yes, good to go"
+                    break
+                    ;;
+                [2])
+                    echo "$key - No, trying again"
+                    echo
+                    retry_mic=1
+                    break
+                    ;;
+                [3])
+                    echo "$key - No, I give up and will use command line only (for now)!"
+                    break
+                    ;;
+                esac
+            done
+
+            if [ $retry_mic -eq 0 ] ; then
+                break
+            fi
+
+        else
             break
         fi
     done
@@ -465,18 +481,20 @@ function setup_wizard() {
         echo "pi ALL=(ALL) ALL" | sudo tee /etc/sudoers.d/010_pi-nopasswd
     fi
 
-    echo
-    echo "========================================================================="
-    echo
-    echo "That's all, setup is complete!  Now we'll pull down the latest software"
-    echo "updates and start Mycroft.  You'll be prompted to pair this device with"
-    echo "an account at https://home.mycroft.ai, then you'll be set to enjoy your"
-    echo "Picroft!"
-    echo
-    echo "To rerun this setup, type 'mycroft-setup-wizard' and reboot."
-    echo
-    echo "Press any key to launch Mycroft..."
-    read -N1 -s anykey
+    if [ ! $skip_last_prompt ]; then
+        echo
+        echo "========================================================================="
+        echo
+        echo "That's all, setup is complete!  Now we'll pull down the latest software"
+        echo "updates and start Mycroft.  You'll be prompted to pair this device with"
+        echo "an account at https://home.mycroft.ai, then you'll be set to enjoy your"
+        echo "Picroft!"
+        echo
+        echo "To rerun this setup, type 'mycroft-setup-wizard' and reboot."
+        echo
+        echo "Press any key to launch Mycroft..."
+        read -N1 -s anykey
+    fi
 }
 
 function speak() {
@@ -546,6 +564,84 @@ then
 
    # Delete to flag setup is complete
     rm ~/first_run
+fi
+
+# Matrix Voice Hat Setup
+if [ -f ~/setup_matrix ]
+then
+    if [ ! -f matrix_setup_state.txt ]
+    then
+        echo ""
+        echo "========================================================================="
+        echo "Setting up Matrix Voice Hat. This will install the matrixio-kernel-modules and pulseaudio"
+        echo "This process is automatic, but requires rebooting three times. Please be patient"
+        echo "Press any key to continue..."
+        read -N1 -s anykey
+    else
+        echo "Press any key to continue setting up Matrix Voice HAT"
+        read -N1 -s anykey
+    fi
+
+    if [ ! -f matrix_setup_state.txt ]
+    then
+        echo "Adding Matrix repo and installing packages..."
+        # add repo
+        curl https://apt.matrix.one/doc/apt-key.gpg | sudo apt-key add -
+        echo "deb https://apt.matrix.one/raspbian $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/matrixlabs.list
+        sudo apt-get update -y
+        sudo apt-get upgrade -y
+
+        echo "stage-1" > matrix_setup_state.txt
+        echo "Rebooting to apply kernel updates, the installation will resume afterwards"
+        read -p "Press enter to continue reboot"
+        sudo reboot
+    else
+        matrix_setup_state=$( cat matrix_setup_state.txt)
+    fi
+
+    if [ $matrix_setup_state == "stage-1" ]
+    then
+        echo "Installing matrixio-kernel-modules..."
+        sudo apt install matrixio-kernel-modules -y
+
+        echo "installing pulseaudio"
+        sudo apt-get install pulseaudio -y
+        
+        echo "Rebooting to apply audio subsystem changes, the installation will continue afterwards."
+        read -p "Press enter to continue reboot"
+        echo "stage-2" > matrix_setup_state.txt
+        sudo reboot
+    fi
+
+    if [ $matrix_setup_state == "stage-2" ]
+    then
+        echo "Setting Matrix as standard microphone..."
+        echo "========================================================================="
+        pactl list sources short
+        sleep 5
+        pulseaudio -k
+        pactl set-default-source 2
+        pulseaudio --start
+        amixer set Master 99%
+        echo "amixer set Master 99%" >> audio_setup.sh
+        sleep 2
+        amixer
+
+        mycroft-mic-test
+        
+        read -p "You should have heard the recording playback. Press enter to continue"
+
+        echo "========================================================================="
+        echo "Updating the python virtual environment"
+        bash mycroft-core/dev_setup.sh
+
+        echo "stage-3" > matrix_setup_state.txt
+        read -p "Your Matrix microphone is now setup! Press enter to perform the final reboot and start Mycroft."
+        sudo reboot
+    fi
+
+    rm ~/matrix_setup_state.txt
+    rm ~/setup_matrix
 fi
 
 
@@ -646,6 +742,7 @@ echo "Ctrl+C to stop showing the log and return to the Linux command line."
 echo "Mycroft will continue running in the background for voice interaction."
 echo
 
+source ~/mycroft-core/start-mycroft.sh all &
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli
 
