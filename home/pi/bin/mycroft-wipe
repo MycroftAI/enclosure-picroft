@@ -70,7 +70,6 @@ case $key in
 
       # wipe ssh keys and regenerate new ones
       sudo rm /etc/ssh/ssh_host_*
-      sudo dpkg-reconfigure openssh-server
 
       # Reset to run setup next boot
       touch ~/first_run

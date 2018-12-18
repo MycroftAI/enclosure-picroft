@@ -511,6 +511,18 @@ function speak() {
 
 ######################
 
+# this will regenerate new ssh keys on boot
+# if keys don't exist. This is needed because
+# ./bin/mycroft-wipe will delete old keys for
+# security measures
+if ! ls /etc/ssh/ssh_host_* 1> /dev/null 2>&1; then
+    echo "Regenerating ssh host keys"
+    sudo dpkg-reconfigure openssh-server
+    sudo systemctl restart ssh
+    echo "New ssh host keys were created. this requires a reboot"
+    sudo reboot
+fi
+
 echo -e "\e[36m"
 echo " ███╗   ███╗██╗   ██╗ ██████╗██████╗  ██████╗ ███████╗████████╗"
 echo " ████╗ ████║╚██╗ ██╔╝██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝"
