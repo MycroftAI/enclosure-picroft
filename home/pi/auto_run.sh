@@ -158,6 +158,12 @@ function setup_wizard() {
         sudo reboot
     fi
 
+    # installs pulseaudio if not already installed
+    if [ $(dpkg-query -W -f='${Status}' pulseaudio 2>/dev/null | grep -c "ok installed") -eq 0 ];
+    then
+        sudo apt-get install pulseaudio -y
+    fi
+
     echo
     echo "========================================================================="
     echo "HARDWARE SETUP"
@@ -203,7 +209,9 @@ function setup_wizard() {
 
             sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
             sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-            sudo apt-get install aiy-python-wheels
+            # At this time, 12/17/2018, installing aiy-python-wheels breaks the install
+            # https://community.mycroft.ai/t/setting-up-aiy-python-wheels-protobuf-not-supported-on-armv6-1/5130/2
+            # sudo apt-get install aiy-python-wheels
             sudo apt-get install leds-ktd202x-dkms
 
             # make soundcard recognizable
@@ -249,7 +257,7 @@ function setup_wizard() {
          [1-9])
             lvl=$key
             # Set volume between 19% and 99%.  Lazily not allowing 100% :)
-            amixer set PCM "${lvl}9%" > /dev/null
+            amixer set Master "${lvl}9%" > /dev/null
             echo -e -n "\b$lvl PLAYING"
             speak "Test"
             ;;
@@ -258,7 +266,7 @@ function setup_wizard() {
             sudo reboot
             ;;
          [Tt])
-            amixer set PCM '${lvl}9%' > /dev/null
+            amixer set Master '${lvl}9%' > /dev/null
             echo -e -n "\b$lvl PLAYING"
             speak "Test"
             ;;
@@ -502,6 +510,18 @@ function speak() {
 }
 
 ######################
+
+# this will regenerate new ssh keys on boot
+# if keys don't exist. This is needed because
+# ./bin/mycroft-wipe will delete old keys for
+# security measures
+if ! ls /etc/ssh/ssh_host_* 1> /dev/null 2>&1; then
+    echo "Regenerating ssh host keys"
+    sudo dpkg-reconfigure openssh-server
+    sudo systemctl restart ssh
+    echo "New ssh host keys were created. this requires a reboot"
+    sudo reboot
+fi
 
 echo -e "\e[36m"
 echo " ███╗   ███╗██╗   ██╗ ██████╗██████╗  ██████╗ ███████╗████████╗"
