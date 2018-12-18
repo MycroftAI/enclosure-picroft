@@ -54,6 +54,7 @@ Simply speak to Picroft as you would to any Mycroft.  For example:
 * [Raspbian Jessie version](https://github.com/MycroftAI/enclosure-picroft/tree/master)
 
 ## Help and more info
+To re-run the setup wizard, use `mycroft-setup-wizard`.
 Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
 There's also the general [Documentation](https://docs.mycroft.ai/).
 
