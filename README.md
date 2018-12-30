@@ -5,7 +5,7 @@
 
 Picroft is an enclosure for a Raspberry Pi 3 or 3B+ connected to a speaker and
 microphone, bringing Mycroft to anyone who wants a simple voice interface they
-have complete control over.  This is built on top of the officiall Raspbian Stretch
+have complete control over.  This is built on top of the official Raspbian Stretch
 Lite image.
 
 The entire project is available as a pre-built micro-SD image ready to be burned
