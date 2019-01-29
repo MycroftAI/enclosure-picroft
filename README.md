@@ -78,7 +78,7 @@ Sadly, not really.  A Raspberry Pi is powerful, but still not well suited to do 
 once.  You can add other basic services on top of Picroft, but the desktop GUI requires too many
 additional resources and neither Mycroft nor the GUI end up running well.
    
-##### Q2) Can I run this with anything else?
+##### Q3) Can I run this with anything else?
 Depends on what you want to add.  Serving simple webpages or polling devices periodically is probably
 fine.  Mining bitcoin won't.
 
