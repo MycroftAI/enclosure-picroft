@@ -11,9 +11,13 @@ Lite image.
 The entire project is available as a pre-built micro-SD image ready to be burned
 and placed into a Raspberry Pi. You can download the pre-built image here:
 
- [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft 2018-9-12 unstable image](https://mycroft.ai/to/picroft-unstable)
+ [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Stable 2018-09-12 image](https://mycroft.ai/to/picroft-image)
 
 SHA-256: 98f0a28127418277f0170a692e8a95cdf6b8cb6e679d026cb515dd697f4749fb
+
+[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2018-12-17 image](https://mycroft.ai/to/picroft-unstable)
+
+SHA-256: 00b6a14a2b2df7ccf09e8c3af47bb9171283be42dc8f883ee0dc5367e19d3111
 
 Optionally you can build it  yourself by following the [Recipe for building the image](image_recipe.md)
 
