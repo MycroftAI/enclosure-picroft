@@ -59,8 +59,8 @@ Simply speak to Picroft as you would to any Mycroft.  For example:
 
 ## Help and more info
 To re-run the setup wizard, use `mycroft-setup-wizard`.
-Check out the project wiki [here](https://github.com/MycroftAI/enclosure-picroft/wiki).  
-There's also the general [Documentation](https://docs.mycroft.ai/).
+Check out the Picroft wiki [here](https://mycroft.ai/documentation/picroft/).  
+There's also the general [Documentation](https://mycroft.ai/documentation/).
 
 ## Customization
 * `audio_setup.sh` configures your specific audio setup.
