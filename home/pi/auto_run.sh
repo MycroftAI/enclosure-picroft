@@ -395,7 +395,7 @@ function setup_wizard() {
             echo "$key - Easy street, 'master' and automatically update"
             echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
             cd ~/mycroft-core
-            git checkout masterll
+            git checkout master
             cd ..
             break
             ;;
@@ -419,7 +419,7 @@ function setup_wizard() {
     echo "actions as root (e.g. 'sudo ...').  This allows any application on the"
     echo "pi to have full access to the system.  This can make some development"
     echo "tasks easy, but is less secure.  Would you like to remain with this default"
-    echo "setup or would you lke to enable standard 'sudo' password behavior?"
+    echo "setup or would you like to enable standard 'sudo' password behavior?"
     echo "  1) Stick with normal Raspian configuration, no password for 'sudo'"
     echo "  2) Require a password for 'sudo' actions."
     echo -n "Choice [1-2]: "
