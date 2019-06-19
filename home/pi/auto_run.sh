@@ -28,6 +28,28 @@
 
 export PATH="$HOME/bin:$HOME/mycroft-core/bin:$PATH"
 
+# Read any saved setup choices
+if [ -f ~/.setup_choices ]
+then
+    audio=$( jq -r ".audio" ~/.setup_choices )
+    mic=$( jq -r ".mic" ~/.setup_choices )
+else
+    audio=""
+    mic=""
+fi
+
+function save_choices() {
+    echo '{' >  ~/.setup_choices
+    if [ "$audio" != "" ] && [ "$audio" != "null" ] ; then
+        echo '  "audio": "'${audio}'",' >>  ~/.setup_choices
+    fi
+    if [ "$mic" != "" ] && [ "$mic" != "null" ] ; then
+        echo '  "mic": "'${mic}'",' >>  ~/.setup_choices
+    fi
+    echo '  "end": true'  >>  ~/.setup_choices   # deal with trailing comma
+    echo '}' >>  ~/.setup_choices
+}
+
 function network_setup() {
     # silent check at first
     if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1 ; then
@@ -39,7 +61,8 @@ function network_setup() {
     show_prompt=1
     should_reboot=255
     reset_wlan0=0
-    while ! ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1 ; do
+
+    while ! ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1 ; do  # check for network connection
         if [ $show_prompt = 1 ]
         then
             echo "Network connection not found, press a key to setup via keyboard"
@@ -57,8 +80,7 @@ function network_setup() {
         # See:  https://github.com/MycroftAI/enclosure-picroft/blob/master/setup_eap_wifi.sh
         # See also:  https://w1.fi/cgit/hostap/plain/wpa_supplicant/wpa_supplicant.conf
 
-        read -N1 -s -t 1 pressed
-
+        read -N1 -s -t 1 pressed  # wait for keypress or one second timeout
         case $pressed in
          1)
             echo
@@ -77,7 +99,7 @@ function network_setup() {
                 echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "        psk=\"$user_pwd\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
-                reset_wlan0=1
+                reset_wlan0=5  # reset wpa and start timer to verify connection
                 break
             else
                 show_prompt=1
@@ -94,7 +116,7 @@ function network_setup() {
                 echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "        key_mgmt=NONE" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
-                reset_wlan0=5
+                reset_wlan0=5  # reset wpa and start timer to verify connection
                 break
             else
                 show_prompt=1
@@ -121,18 +143,17 @@ function network_setup() {
             then
                 echo "Reconfiguring WLAN0..."
                 wpa_cli -i wlan0 reconfigure
-                show_prompt=1
                 sleep 3
             elif [[ $reset_wlan0 -eq 1 ]]
             then
+                # Wireless network connection didn't come up within 8 seconds
                 echo "Failed to connect to network."
                 show_prompt=1
+                reset_wlan0=0
             else
-                # decrement the counter
+                # decrement the counter every second
                 reset_wlan0= expr $reset_wlan0 - 1
             fi
-
-            $reset_wlan0=4
         fi
 
     done
@@ -172,7 +193,8 @@ function setup_wizard() {
     echo "  2) HDMI audio (e.g. a TV or monitor with built-in speakers)"
     echo "  3) USB audio (e.g. a USB soundcard or USB mic/speaker combo)"
     echo "  4) Google AIY Voice HAT and microphone board (Voice Kit v1)"
-    echo -n "Choice [1-4]: "
+    echo "  5) Seeed Mic Array v2.0 (speaker plugged in to Mic board)"
+    echo -n "Choice [1-5]: "
     while true; do
         read -N1 -s key
         case $key in
@@ -181,6 +203,7 @@ function setup_wizard() {
             # audio out the analog speaker/headphone jack
             sudo amixer cset numid=3 "1" > /dev/null
             echo 'sudo amixer cset numid=3 "1" > /dev/null' >> ~/audio_setup.sh
+            audio="analog_audio"
             break
             ;;
          2)
@@ -188,6 +211,7 @@ function setup_wizard() {
             # audio out the HDMI port (e.g. TV speakers)
             sudo amixer cset numid=3 "2" > /dev/null
             echo 'sudo amixer cset numid=3 "2"  > /dev/null' >> ~/audio_setup.sh
+            audio="hdmi_audio"
             break
             ;;
          3)
@@ -195,6 +219,7 @@ function setup_wizard() {
             # audio out to the USB soundcard
             sudo amixer cset numid=3 "0" > /dev/null
             echo 'sudo amixer cset numid=3 "0"  > /dev/null' >> ~/audio_setup.sh
+            audio="usb_audio"
             break
             ;;
          4)
@@ -203,7 +228,7 @@ function setup_wizard() {
             echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
             wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 
-            sudo apt-get update
+            sudo apt-get  -o Acquire::ForceIPv4=true update
             # hack to get aiy-io-mcu-firmware to be installed
             sudo mkdir /usr/lib/systemd/system
 
@@ -232,26 +257,58 @@ function setup_wizard() {
             sudo cp AIY-asound.conf /etc/asound.conf
 
             # rebuild venv
-            mycroft-core/dev_setup
+            bash mycroft-core/dev_setup.sh
 
             # TODO: reboot needed?
             # YES reboot neded !
-            echo "Reboot is neded !"
+            echo "Reboot is required, restarting in 5 seconds..."
+            audio="google_aiy"
+            save_choices
+            sleep 5
+            sudo reboot
+            ;;
+         5)
+            echo "$key - Seeed Mic Array v2.0"
+
+            # TODO: Can look for 2886:0018 in lsusb output to verify connection
+
+            # Flash latest Seeed firmware
+            echo "Downloading and flashing latest firmware from Seeed..."
+            sudo /home/pi/mycroft-core/.venv/bin/pip install pyusb click
+            git clone https://github.com/respeaker/usb_4_mic_array.git
+            cd usb_4_mic_array
+            sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
+            cd ..
+
+            # Configure Mycroft to use plughw:1,0 (Seeed device)
+            sudo sed -i \
+                -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:1,0 %1/" \
+                -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:1,0 %1/" \
+                /etc/mycroft/mycroft.conf
+
+            audio="seed_mic_array_20"
             break
             ;;
-
         esac
     done
+
+    save_choices
 
     lvl=7
     echo
     echo "Let's test and adjust the volume:"
-    echo "  1-9) Set volume level (1-quietest, 9=loudest)"
+    if [ $audio == "seed_mic_array_20" ] ; then
+        lvl=9
+    else
+        echo "  1-9) Set volume level (1-quietest, 9=loudest)"
+    fi
     echo "  T)est"
-    echo "  R)eboot (needed if you just installed Google Voice Hat or plugged in a USB speaker)"
+    echo "  R)eboot (needed if you just plugged in a USB speaker)"
     echo "  D)one!"
     while true; do
-        echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
+        if [ $audio != "seed_mic_array_20" ] ; then
+            echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
+        fi
         read -N1 -s key
         case $key in
          [1-9])
@@ -283,52 +340,64 @@ function setup_wizard() {
     echo "As a voice assistant, Mycroft needs to access a microphone to operate."
 
     while true; do
-        echo "Please ensure your microphone is connected and select from the following"
-        echo "list of microphones:"
-        echo "  1) PlayStation Eye (USB)"
-        echo "  2) Blue Snoball ICE (USB)"
-        echo "  3) Google AIY Voice HAT and microphone board (Voice Kit v1)"
-        echo "  4) Matrix Voice HAT."
-        echo "  5) Other (unsupported -- good luck!)"
-        echo -n "Choice [1-5]: "
-        echo
-        while true; do
-            read -N1 -s key
-            case $key in
-             1)
-                echo "$key - PS Eye"
-                # nothing to do, this is the default
-                break
-                ;;
-             2)
-                echo "$key - Blue Snoball"
-                # nothing to do, this is the default
-                break
-                ;;
-             3)
-                echo "$key - Google AIY Voice Hat"
-                break
-                ;;
-             4)
-                echo "$key - Matrix Voice Hat"
-                echo "The setup script for Matrix Voice Hat will run at the end of"
-                echo "The setup wizard. Press any key to continue..."
-                read -N1 -s anykey
-                touch setup_matrix  # setting flag to run setup_matrix_voice.sh
-                skip_mic_test=true
-                skip_last_prompt=true
-                break
-                ;;
-             5)
-                echo "$key - Other"
-                echo "Other microphone _might_ work, but there are no guarantees."
-                echo "We'll run the tests, but you are on your own.  If you have"
-                echo "issues, the most likely cause is an incompatible microphone."
-                echo "The PS Eye is cheap -- save yourself hassle and just buy one!"
-                break
-                ;;
-            esac
-        done
+        if [ "$audio" == "seed_mic_array_20" ]
+        then
+            echo "Previously you chose a Seeed Mic Array 2.0 for audio output,"
+            echo " so we will use that mic."
+            mic="seed_mic_array_20"
+        else
+            echo "Please ensure your microphone is connected and select from the following"
+            echo "list of microphones:"
+            echo "  1) PlayStation Eye (USB)"
+            echo "  2) Blue Snoball ICE (USB)"
+            echo "  3) Google AIY Voice HAT and microphone board (Voice Kit v1)"
+            echo "  4) Matrix Voice HAT."
+            echo "  5) Other (unsupported -- good luck!)"
+            echo -n "Choice [1-5]: "
+            echo
+            while true; do
+                read -N1 -s key
+                case $key in
+                1)
+                    echo "$key - PS Eye"
+                    # nothing to do, this is the default
+                    mic="ps_eye"
+                    break
+                    ;;
+                2)
+                    echo "$key - Blue Snoball"
+                    # nothing to do, this is the default
+                    mic="blue_snoball"
+                    break
+                    ;;
+                3)
+                    echo "$key - Google AIY Voice Hat"
+                    mic="google_aiy"
+                    break
+                    ;;
+                4)
+                    echo "$key - Matrix Voice Hat"
+                    echo "The setup script for Matrix Voice Hat will run at the end of"
+                    echo "The setup wizard. Press any key to continue..."
+                    read -N1 -s anykey
+                    touch setup_matrix  # setting flag to run setup_matrix_voice.sh
+                    skip_mic_test=true
+                    skip_last_prompt=true
+                    mic="matrix_voice"
+                    break
+                    ;;
+                5)
+                    echo "$key - Other"
+                    echo "Other microphone _might_ work, but there are no guarantees."
+                    echo "We'll run the tests, but you are on your own.  If you have"
+                    echo "issues, the most likely cause is an incompatible microphone."
+                    echo "The PS Eye is cheap -- save yourself hassle and just buy one!"
+                    mic="other"
+                    break
+                    ;;
+                esac
+            done
+        fi
 
         if [ ! $skip_mic_test ]; then
             echo
@@ -379,6 +448,8 @@ function setup_wizard() {
             break
         fi
     done
+
+    save_choices
 
     echo "========================================================================="
     echo "MYCROFT SETUP"
@@ -513,13 +584,14 @@ function speak() {
 
 # this will regenerate new ssh keys on boot
 # if keys don't exist. This is needed because
-# ./bin/mycroft-wipe will delete old keys for
-# security measures
+# ./bin/mycroft-wipe will delete old keys as
+# a security measures
 if ! ls /etc/ssh/ssh_host_* 1> /dev/null 2>&1; then
-    echo "Regenerating ssh host keys"
+    echo "Generating fresh ssh host keys"
     sudo dpkg-reconfigure openssh-server
     sudo systemctl restart ssh
     echo "New ssh host keys were created. this requires a reboot"
+    sleep 2
     sudo reboot
 fi
 
@@ -608,8 +680,8 @@ then
         # add repo
         curl https://apt.matrix.one/doc/apt-key.gpg | sudo apt-key add -
         echo "deb https://apt.matrix.one/raspbian $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/matrixlabs.list
-        sudo apt-get update -y
-        sudo apt-get upgrade -y
+        sudo apt-get -o Acquire::ForceIPv4=true update -y
+        sudo apt-get -o Acquire::ForceIPv4=true upgrade -y
 
         echo "stage-1" > matrix_setup_state.txt
         echo "Rebooting to apply kernel updates, the installation will resume afterwards"
@@ -626,7 +698,7 @@ then
 
         echo "installing pulseaudio"
         sudo apt-get install pulseaudio -y
-        
+
         echo "Rebooting to apply audio subsystem changes, the installation will continue afterwards."
         read -p "Press enter to continue reboot"
         echo "stage-2" > matrix_setup_state.txt
@@ -648,7 +720,7 @@ then
         amixer
 
         mycroft-mic-test
-        
+
         read -p "You should have heard the recording playback. Press enter to continue"
 
         echo "========================================================================="

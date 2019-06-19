@@ -7,8 +7,10 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
 
 ### Start with the official Raspbian Image
 * Download and burn [Raspbian Stretch Lite](https://downloads.raspberrypi.org/raspbian_lite_latest).
-  <br>_Last used 2018-06-27 version_
+  <br>_Last used 2019-04-08 version_
 * Install into Raspberry Pi and boot
+  - login: pi
+  - password: raspberry
 
 ### General configuration
   - ```sudo raspi-config```
@@ -20,6 +22,8 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
       - N3 Network interface names
         - pick *Yes*
   - 3 Boot Options
+      - B1 Desktop / CLI
+        - B2 Console Autologin
       - B2 Wait for network
         - pick *No*
   - 4 Localization Options
@@ -35,6 +39,7 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
   - 5 Interfacing Options
       - P2 SSH
           - Pick *Yes*
+  - Finish and reboot
 
 ### Set the device to not use locale settings provided by ssh
 * ```sudo nano /etc/ssh/sshd_config``` and comment out the line (prefix with '#')
@@ -60,6 +65,12 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
 * bash update.sh
 
 **The update.sh script will perform all of the following steps in this section...**
+When asked by dev_setup, answer as follows:
+- Y) run on the stable 'master' branch
+- Y) automatically check for updates
+- Y) build Mimic locally
+- Y) add Mycroft helper commands to path
+- Y) check code style
 
 ##### Enable Autologin as the 'pi' user
 
@@ -77,7 +88,6 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
     ```
     tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0
     ```
-   
 
 ##### Environment setup (part of update.sh)
 
