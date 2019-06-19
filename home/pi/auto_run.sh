@@ -270,7 +270,7 @@ function setup_wizard() {
          5)
             echo "$key - Seeed Mic Array v2.0"
 
-            # TODO: Can look for 2886:0018 in lsusb output to verify connection
+            # TODO: Can look for 2886:0018 with lsusb to verify mic is plugged in.
 
             # Flash latest Seeed firmware
             echo "Downloading and flashing latest firmware from Seeed..."
@@ -280,10 +280,10 @@ function setup_wizard() {
             sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
             cd ..
 
-            # Configure Mycroft to use plughw:1,0 (Seeed device)
+            # Configure Mycroft to use default:ArrayUAC10,0 (Seeed device)
             sudo sed -i \
-                -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:1,0 %1/" \
-                -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:1,0 %1/" \
+                -e "s/aplay -Dhw:0,0 %1/aplay -Ddefault:ArrayUAC10,0 %1/" \
+                -e "s/mpg123 -a hw:0,0 %1/mpg123 -a default:ArrayUAC10,0 %1/" \
                 /etc/mycroft/mycroft.conf
 
             audio="seed_mic_array_20"
