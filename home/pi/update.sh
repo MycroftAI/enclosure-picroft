@@ -73,14 +73,23 @@ then
     echo "Build complete.  Press any key to review the output before it is deleted."
     read -N1 -s key
     nano ../build.log
+    rm ../build.log
+
+    echo
+    echo "Retrieving default skills"
+    sudo mkdir /opt/mycroft
+    sudo chown pi:pi /opt/mycroft
+    ~/mycroft-core/bin/mycroft-msm default
+
+    wget -N $REPO_PATH/home/pi/audio_setup.sh
+    wget -N $REPO_PATH/home/pi/custom_setup.sh
 fi
 
 # update software
+echo "Updating Picroft scripts"
 cd ~
 wget -N $REPO_PATH/home/pi/.bashrc
-wget -N $REPO_PATH/home/pi/audio_setup.sh
 wget -N $REPO_PATH/home/pi/auto_run.sh
-wget -N $REPO_PATH/home/pi/custom_setup.sh
 wget -N $REPO_PATH/home/pi/version
 
 cd ~/bin

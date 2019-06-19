@@ -60,7 +60,7 @@ function network_setup() {
     # plugged in a network cable.
     show_prompt=1
     should_reboot=255
-    reset_wlan0=0
+    reset_wifi=0
 
     while ! ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1 ; do  # check for network connection
         if [ $show_prompt = 1 ]
@@ -99,7 +99,7 @@ function network_setup() {
                 echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "        psk=\"$user_pwd\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
-                reset_wlan0=5  # reset wpa and start timer to verify connection
+                reset_wifi=5  # reset wpa and start timer to verify connection
                 break
             else
                 show_prompt=1
@@ -116,7 +116,7 @@ function network_setup() {
                 echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "        key_mgmt=NONE" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
-                reset_wlan0=5  # reset wpa and start timer to verify connection
+                reset_wifi=5  # reset wpa and start timer to verify connection
                 break
             else
                 show_prompt=1
@@ -124,7 +124,7 @@ function network_setup() {
             ;;
          3)
             sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
-            reset_wlan0=5
+            reset_wifi=5
             break
             ;;
          4)
@@ -137,23 +137,39 @@ function network_setup() {
             ;;
         esac
 
-        if [[ $reset_wlan0 -gt 0 ]]
+        if [[ $reset_wifi -gt 0 ]]
         then
-            if [[ $reset_wlan0 -eq 5 ]]
+            if [[ $reset_wifi -eq 5 ]]
             then
-                echo "Reconfiguring WLAN0..."
+                echo -n "Reconfiguring WLAN0..."
                 wpa_cli -i wlan0 reconfigure
-                sleep 3
-            elif [[ $reset_wlan0 -eq 1 ]]
+                echo -n "Detecting network connection."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+                echo -n "."
+                sleep 1
+            elif [[ $reset_wifi -eq 1 ]]
             then
                 # Wireless network connection didn't come up within 8 seconds
                 echo "Failed to connect to network."
                 show_prompt=1
-                reset_wlan0=0
-            else
-                # decrement the counter every second
-                reset_wlan0= expr $reset_wlan0 - 1
             fi
+
+            # decrement the counter every second
+            reset_wifi= expr $reset_wifi - 1
         fi
 
     done
