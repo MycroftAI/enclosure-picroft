@@ -31,19 +31,25 @@ case $key in
       sleep 2
       echo "wiping system..."
 
+      # Shutdown services
+      mycroft-stop all
+
       if [ -d ~/.mycroft ]
       then
          # Remove all Mycroft user settings
          rm -Rf ~/.mycroft
 
-         # Remove all custom skills/settings (except very basics)
-         mv /opt/mycroft/skills/mycroft-pairing.mycroftai /opt/mycroft
-         mv /opt/mycroft/skills/mycroft-installer.mycroftai /opt/mycroft
-         mv /opt/mycroft/skills/mycroft-configuration.mycroftai /opt/mycroft
-         rm -Rf /opt/mycroft/skills/*
-         mv /opt/mycroft/mycroft-pairing.mycroftai /opt/mycroft/skills
-         mv /opt/mycroft/mycroft-installer.mycroftai /opt/mycroft/skills
-         mv /opt/mycroft/mycroft-configuration.mycroftai /opt/mycroft/skills
+         if [ "$1" != "--keep-skills" ] ; then
+            # Remove all custom skills/settings (except very basics)
+            echo "Clearing out skills..."
+            mv /opt/mycroft/skills/mycroft-pairing.mycroftai /opt/mycroft
+            mv /opt/mycroft/skills/mycroft-installer.mycroftai /opt/mycroft
+            mv /opt/mycroft/skills/mycroft-configuration.mycroftai /opt/mycroft
+            rm -Rf /opt/mycroft/skills/*
+            mv /opt/mycroft/mycroft-pairing.mycroftai /opt/mycroft/skills
+            mv /opt/mycroft/mycroft-installer.mycroftai /opt/mycroft/skills
+            mv /opt/mycroft/mycroft-configuration.mycroftai /opt/mycroft/skills
+         fi
       fi
 
       # Blank-out audio settings
@@ -63,8 +69,12 @@ case $key in
       # in the auto_run.sh script on first boot.
       sudo rm /etc/ssh/ssh_host_*
 
+      # Remove all log files
+      rm -f /var/log/mycroft/*
+
       # Reset to run setup next boot
       touch ~/first_run
+      rm -f ~/.setup_choices
 
       # Reset bash history
       history -c

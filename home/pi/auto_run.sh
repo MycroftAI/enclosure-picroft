@@ -100,7 +100,6 @@ function network_setup() {
                 echo "        psk=\"$user_pwd\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 reset_wifi=5  # reset wpa and start timer to verify connection
-                break
             else
                 show_prompt=1
             fi
@@ -117,7 +116,6 @@ function network_setup() {
                 echo "        key_mgmt=NONE" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 reset_wifi=5  # reset wpa and start timer to verify connection
-                break
             else
                 show_prompt=1
             fi
@@ -125,7 +123,6 @@ function network_setup() {
          3)
             sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
             reset_wifi=5
-            break
             ;;
          4)
             should_reboot=1
@@ -296,10 +293,10 @@ function setup_wizard() {
             sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
             cd ..
 
-            # Configure Mycroft to use default:ArrayUAC10,0 (Seeed device)
+            # Configure Mycroft to use plughw:ArrayUAC10,0 (Seeed device)
             sudo sed -i \
-                -e "s/aplay -Dhw:0,0 %1/aplay -Ddefault:ArrayUAC10,0 %1/" \
-                -e "s/mpg123 -a hw:0,0 %1/mpg123 -a default:ArrayUAC10,0 %1/" \
+                -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:ArrayUAC10,0 %1/" \
+                -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:ArrayUAC10,0 %1/" \
                 /etc/mycroft/mycroft.conf
 
             audio="seed_mic_array_20"
@@ -314,7 +311,7 @@ function setup_wizard() {
     echo
     echo "Let's test and adjust the volume:"
     if [ $audio == "seed_mic_array_20" ] ; then
-        lvl=9
+        lvl=" "
     else
         echo "  1-9) Set volume level (1-quietest, 9=loudest)"
     fi
@@ -322,7 +319,9 @@ function setup_wizard() {
     echo "  R)eboot (needed if you just plugged in a USB speaker)"
     echo "  D)one!"
     while true; do
-        if [ $audio != "seed_mic_array_20" ] ; then
+        if [ $audio == "seed_mic_array_20" ] ; then
+            echo -n -e "\r[T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
+        else
             echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
         fi
         read -N1 -s key
@@ -349,7 +348,10 @@ function setup_wizard() {
             ;;
       esac
     done
-    echo "amixer set PCM "$lvl"9%" >> ~/audio_setup.sh
+
+    if [ "$lvl" != " " ] ; then
+        echo "amixer set PCM "$lvl"9%" >> ~/audio_setup.sh
+    fi
 
     echo
     echo "The final step is Microphone configuration:"
@@ -593,7 +595,10 @@ function setup_wizard() {
 }
 
 function speak() {
-    ~/mycroft-core/mimic/bin/mimic -t $@
+    ~/mycroft-core/mimic/bin/mimic -t $@ -o /tmp/speak.wav
+    wavcmd=$( jq -r ".play_wav_cmdline" /etc/mycroft/mycroft.conf )
+    wavcmd="${wavcmd/\%1/\/tmp\/speak.wav}"
+    $( $wavcmd >/dev/null 2>&1 )
 }
 
 ######################
@@ -853,4 +858,3 @@ echo
 source ~/mycroft-core/start-mycroft.sh all &
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli
-

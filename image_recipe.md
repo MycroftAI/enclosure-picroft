@@ -116,7 +116,7 @@ When asked by dev_setup, answer as follows:
 (Wait an hour on a RPi3B+)
 
 ## Final steps
-* Run ```. ~/bin/mycroft-wipe```
+* Run ```. ~/bin/mycroft-wipe --keep-skills```
 * Remove the SD card
 * Create an IMG file named "raspbian-stretch_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
 * Compress the IMG using pishrink.sh
