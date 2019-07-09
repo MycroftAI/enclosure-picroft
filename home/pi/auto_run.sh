@@ -182,6 +182,52 @@ function network_setup() {
     return $should_reboot
 }
 
+function update_software() {
+    # Look for internet connection.
+    if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
+    then
+        echo "**** Checking for updates to Picroft environment"
+        echo "This might take a few minutes, please be patient..."
+                
+        cd /tmp
+        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
+        if [ $? -eq 0 ]
+        then
+            if [ ! -f ~/version ] ; then
+                echo "unknown" > ~/version
+            fi
+
+            cmp /tmp/version ~/version
+            if  [ $? -eq 1 ]
+            then
+                # Versions don't match...update needed
+                echo "**** Update found, downloadling new Picroft scripts!"
+                speak "Updating Picroft, please hold on."
+
+                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+                if [ $? -eq 0 ]
+                then
+                    source update.sh
+                    cp /tmp/version ~/version
+
+                    # restart
+                    echo "Restarting..."
+                    speak "Update complete, restarting."
+                    sudo reboot now
+                else
+                    echo "ERROR: Failed to download update script."
+                fi
+            fi
+        fi
+
+        # TODO: Skip update check if done recently?
+        echo -n "Checking for mycroft-core updates..."
+        cd ~/mycroft-core
+        git pull
+        cd ~
+    fi
+}
+
 function setup_wizard() {
 
     # Handle internet connection
@@ -191,7 +237,12 @@ function setup_wizard() {
         echo "Rebooting..."
         sudo reboot
     fi
-
+    
+    # Check for/download new software (including mycroft-core dependencies, while we are at it).
+    update_software
+    echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
+    bash ~/mycroft-core/dev_setup.sh
+  
     # installs pulseaudio if not already installed
     if [ $(dpkg-query -W -f='${Status}' pulseaudio 2>/dev/null | grep -c "ok installed") -eq 0 ];
     then
@@ -792,54 +843,10 @@ then
         cd ~
     fi
 
-    # Look for internet connection.
-    if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
-    then
-        echo "**** Checking for updates to Picroft environment"
-        cd /tmp
-        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
-        if [ $? -eq 0 ]
-        then
-            if [ ! -f ~/version ] ; then
-                echo "unknown" > ~/version
-            fi
-
-            cmp /tmp/version ~/version
-            if  [ $? -eq 1 ]
-            then
-                # Versions don't match...update needed
-                echo "**** Update found, downloadling new Picroft scripts!"
-                speak "Updating Picroft, please hold on."
-
-                # Stop interactive parts of mycroft, as we don't
-                # want the user interacting with it while updating.
-                sudo service mycroft-skills stop
-
-                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
-                if [ $? -eq 0 ]
-                then
-                    source update.sh
-                    cp /tmp/version ~/version
-
-                    # restart
-                    echo "Restarting..."
-                    speak "Update complete, restarting."
-                    sudo reboot now
-                else
-                    echo "ERROR: Failed to download update script."
-                fi
-            fi
-        fi
-
-        # TODO: Skip update check if done recently?
-        echo -n "Checking for mycroft-core updates..."
-        cd ~/mycroft-core
-        git pull
-        cd ~
-    fi
+    update_software
 
     # Launch Mycroft Services ======================
-    source ~/mycroft-core/start-mycroft.sh all &
+    bash  "$HOME/mycroft-core/start-mycroft.sh" all &
 else
     # running in SSH session
     echo
@@ -855,6 +862,5 @@ echo "Ctrl+C to stop showing the log and return to the Linux command line."
 echo "Mycroft will continue running in the background for voice interaction."
 echo
 
-source ~/mycroft-core/start-mycroft.sh all &
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli
