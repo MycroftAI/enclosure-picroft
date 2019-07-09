@@ -238,9 +238,11 @@ function setup_wizard() {
         sudo reboot
     fi
     
-    # Check for/download new software
+    # Check for/download new software (including mycroft-core dependencies, while we are at it).
     update_software
-
+    echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
+    bash ~/mycroft-core/dev_setup.sh
+  
     # installs pulseaudio if not already installed
     if [ $(dpkg-query -W -f='${Status}' pulseaudio 2>/dev/null | grep -c "ok installed") -eq 0 ];
     then
