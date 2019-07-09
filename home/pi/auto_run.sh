@@ -839,7 +839,7 @@ then
     fi
 
     # Launch Mycroft Services ======================
-    source ~/mycroft-core/start-mycroft.sh all &
+    bash  "$HOME/mycroft-core/start-mycroft.sh" all &
 else
     # running in SSH session
     echo
@@ -855,6 +855,5 @@ echo "Ctrl+C to stop showing the log and return to the Linux command line."
 echo "Mycroft will continue running in the background for voice interaction."
 echo
 
-source ~/mycroft-core/start-mycroft.sh all &
 sleep 5  # for some reason this delay is needed for the mic to be detected
 "$HOME/mycroft-core/start-mycroft.sh" cli
