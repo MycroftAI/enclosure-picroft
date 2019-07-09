@@ -187,6 +187,8 @@ function update_software() {
     if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
     then
         echo "**** Checking for updates to Picroft environment"
+        echo "This might take a few minutes, please be patient..."
+                
         cd /tmp
         wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
         if [ $? -eq 0 ]
