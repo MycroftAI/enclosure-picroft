@@ -846,21 +846,25 @@ then
     update_software
 
     # Launch Mycroft Services ======================
-    bash  "$HOME/mycroft-core/start-mycroft.sh" all &
-else
-    # running in SSH session
+    bash  "$HOME/mycroft-core/start-mycroft.sh" all
+    
+    # Display success/welcome message for user
     echo
+    echo
+    mycroft-help
+    echo
+    echo "Mycroft is now running in the background."
+    echo "To show the Mycroft command line interface type:  mycroft-cli-client"
+else
+    # running in SSH session, auto-launch the CLI
+    echo
+    mycroft-help
+    echo
+    echo "***********************************************************************"
+    echo "In a few moments you will see the Mycroft CLI (command line interface)."
+    echo "Hit Ctrl+C to return to the Linux command line.  You can launch the CLI"
+    echo "again by entering:  mycroft-cli-client"
+    echo
+    sleep 2
+   "$HOME/mycroft-core/start-mycroft.sh" cli
 fi
-
-echo
-mycroft-help
-
-echo
-echo "***********************************************************************"
-echo "In a few moments you will see the contents of the speech log.  Hit"
-echo "Ctrl+C to stop showing the log and return to the Linux command line."
-echo "Mycroft will continue running in the background for voice interaction."
-echo
-
-sleep 5  # for some reason this delay is needed for the mic to be detected
-"$HOME/mycroft-core/start-mycroft.sh" cli
