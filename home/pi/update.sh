@@ -23,7 +23,7 @@
 
 REPO_PATH="https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch"
 
-if [ ! -f $REPO_PATH/etc/mycroft/mycroft.conf ] ;
+if [ ! -f /etc/mycroft/mycroft.conf ] ;
 then
     # Assume this is a fresh install, setup the system
     echo "Would you like to install Picroft on this machine?"
