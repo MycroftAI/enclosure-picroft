@@ -182,6 +182,50 @@ function network_setup() {
     return $should_reboot
 }
 
+function update_software() {
+    # Look for internet connection.
+    if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
+    then
+        echo "**** Checking for updates to Picroft environment"
+        cd /tmp
+        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
+        if [ $? -eq 0 ]
+        then
+            if [ ! -f ~/version ] ; then
+                echo "unknown" > ~/version
+            fi
+
+            cmp /tmp/version ~/version
+            if  [ $? -eq 1 ]
+            then
+                # Versions don't match...update needed
+                echo "**** Update found, downloadling new Picroft scripts!"
+                speak "Updating Picroft, please hold on."
+
+                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+                if [ $? -eq 0 ]
+                then
+                    source update.sh
+                    cp /tmp/version ~/version
+
+                    # restart
+                    echo "Restarting..."
+                    speak "Update complete, restarting."
+                    sudo reboot now
+                else
+                    echo "ERROR: Failed to download update script."
+                fi
+            fi
+        fi
+
+        # TODO: Skip update check if done recently?
+        echo -n "Checking for mycroft-core updates..."
+        cd ~/mycroft-core
+        git pull
+        cd ~
+    fi
+}
+
 function setup_wizard() {
 
     # Handle internet connection
@@ -191,6 +235,9 @@ function setup_wizard() {
         echo "Rebooting..."
         sudo reboot
     fi
+    
+    # Check for/download new software
+    update_software
 
     # installs pulseaudio if not already installed
     if [ $(dpkg-query -W -f='${Status}' pulseaudio 2>/dev/null | grep -c "ok installed") -eq 0 ];
@@ -792,51 +839,7 @@ then
         cd ~
     fi
 
-    # Look for internet connection.
-    if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1
-    then
-        echo "**** Checking for updates to Picroft environment"
-        cd /tmp
-        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
-        if [ $? -eq 0 ]
-        then
-            if [ ! -f ~/version ] ; then
-                echo "unknown" > ~/version
-            fi
-
-            cmp /tmp/version ~/version
-            if  [ $? -eq 1 ]
-            then
-                # Versions don't match...update needed
-                echo "**** Update found, downloadling new Picroft scripts!"
-                speak "Updating Picroft, please hold on."
-
-                # Stop interactive parts of mycroft, as we don't
-                # want the user interacting with it while updating.
-                sudo service mycroft-skills stop
-
-                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
-                if [ $? -eq 0 ]
-                then
-                    source update.sh
-                    cp /tmp/version ~/version
-
-                    # restart
-                    echo "Restarting..."
-                    speak "Update complete, restarting."
-                    sudo reboot now
-                else
-                    echo "ERROR: Failed to download update script."
-                fi
-            fi
-        fi
-
-        # TODO: Skip update check if done recently?
-        echo -n "Checking for mycroft-core updates..."
-        cd ~/mycroft-core
-        git pull
-        cd ~
-    fi
+    update_software
 
     # Launch Mycroft Services ======================
     bash  "$HOME/mycroft-core/start-mycroft.sh" all &
