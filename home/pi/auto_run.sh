@@ -33,9 +33,11 @@ if [ -f ~/.setup_choices ]
 then
     audio=$( jq -r ".audio" ~/.setup_choices )
     mic=$( jq -r ".mic" ~/.setup_choices )
+    setup_stage=$( jq -r ".setup_stage" ~/.setup_choices )
 else
     audio=""
     mic=""
+    setup_stage=""
 fi
 
 function save_choices() {
@@ -46,7 +48,7 @@ function save_choices() {
     if [ "$mic" != "" ] && [ "$mic" != "null" ] ; then
         echo '  "mic": "'${mic}'",' >>  ~/.setup_choices
     fi
-    echo '  "end": true'  >>  ~/.setup_choices   # deal with trailing comma
+    echo '  "setup_stage": "'${setup_stage}'",' >>  ~/.setup_choices
     echo '}' >>  ~/.setup_choices
 }
 
@@ -188,7 +190,7 @@ function update_software() {
     then
         echo "**** Checking for updates to Picroft environment"
         echo "This might take a few minutes, please be patient..."
-                
+
         cd /tmp
         wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
         if [ $? -eq 0 ]
@@ -223,7 +225,12 @@ function update_software() {
         # TODO: Skip update check if done recently?
         echo -n "Checking for mycroft-core updates..."
         cd ~/mycroft-core
-        git pull
+
+        git fetch
+        if [ $(git rev-parse HEAD) != $(git rev-parse @{u}) ] ; then
+            git pull
+            bash dev_setup.sh
+        fi
         cd ~
     fi
 }
@@ -235,126 +242,140 @@ function setup_wizard() {
     if [[ $? -eq 1 ]]
     then
         echo "Rebooting..."
+        setup_stage="net_reboot"
+        save_choices
         sudo reboot
     fi
-    
+    if [ "$setup_stage" == "net_reboot" ] ; then
+        setup_stage=""
+        save_choices
+    fi
+
+
     # Check for/download new software (including mycroft-core dependencies, while we are at it).
-    update_software
     echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
-    bash ~/mycroft-core/dev_setup.sh
-  
-    # installs pulseaudio if not already installed
+    update_software
+
+    # installs Pulseaudio if not already installed
     if [ $(dpkg-query -W -f='${Status}' pulseaudio 2>/dev/null | grep -c "ok installed") -eq 0 ];
     then
         sudo apt-get install pulseaudio -y
     fi
 
-    echo
-    echo "========================================================================="
-    echo "HARDWARE SETUP"
-    echo "How do you want Mycroft to output audio:"
-    echo "  1) Speakers via 3.5mm output (aka 'audio jack' or 'headphone jack')"
-    echo "  2) HDMI audio (e.g. a TV or monitor with built-in speakers)"
-    echo "  3) USB audio (e.g. a USB soundcard or USB mic/speaker combo)"
-    echo "  4) Google AIY Voice HAT and microphone board (Voice Kit v1)"
-    echo "  5) Seeed Mic Array v2.0 (speaker plugged in to Mic board)"
-    echo -n "Choice [1-5]: "
-    while true; do
-        read -N1 -s key
-        case $key in
-         1)
-            echo "$key - Analog audio"
-            # audio out the analog speaker/headphone jack
-            sudo amixer cset numid=3 "1" > /dev/null
-            echo 'sudo amixer cset numid=3 "1" > /dev/null' >> ~/audio_setup.sh
-            audio="analog_audio"
-            break
-            ;;
-         2)
-            echo "$key - HDMI audio"
-            # audio out the HDMI port (e.g. TV speakers)
-            sudo amixer cset numid=3 "2" > /dev/null
-            echo 'sudo amixer cset numid=3 "2"  > /dev/null' >> ~/audio_setup.sh
-            audio="hdmi_audio"
-            break
-            ;;
-         3)
-            echo "$key - USB audio"
-            # audio out to the USB soundcard
-            sudo amixer cset numid=3 "0" > /dev/null
-            echo 'sudo amixer cset numid=3 "0"  > /dev/null' >> ~/audio_setup.sh
-            audio="usb_audio"
-            break
-            ;;
-         4)
-            echo "$key - Google AIY Voice HAT and microphone board (Voice Kit v1)"
-            # Get AIY drivers
-            echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
-            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+    if [ -z "$audio" ] ; then
+        echo
+        echo "========================================================================="
+        echo "HARDWARE SETUP"
+        echo "How do you want Mycroft to output audio:"
+        echo "  1) Speakers via 3.5mm output (aka 'audio jack' or 'headphone jack')"
+        echo "  2) HDMI audio (e.g. a TV or monitor with built-in speakers)"
+        echo "  3) USB audio (e.g. a USB soundcard or USB mic/speaker combo)"
+        echo "  4) Google AIY Voice HAT and microphone board (Voice Kit v1)"
+        echo "  5) Seeed Mic Array v2.0 (speaker plugged in to Mic board)"
+        echo -n "Choice [1-5]: "
+        while true; do
+            read -N1 -s key
+            case $key in
+             1)
+                echo "$key - Analog audio"
+                # audio out the analog speaker/headphone jack
+                sudo amixer cset numid=3 "1" > /dev/null
+                echo 'sudo amixer cset numid=3 "1" > /dev/null' >> ~/audio_setup.sh
+                audio="analog_audio"
+                break
+                ;;
+             2)
+                echo "$key - HDMI audio"
+                # audio out the HDMI port (e.g. TV speakers)
+                sudo amixer cset numid=3 "2" > /dev/null
+                echo 'sudo amixer cset numid=3 "2"  > /dev/null' >> ~/audio_setup.sh
+                audio="hdmi_audio"
+                break
+                ;;
+             3)
+                echo "$key - USB audio"
+                # audio out to the USB soundcard
+                sudo amixer cset numid=3 "0" > /dev/null
+                echo 'sudo amixer cset numid=3 "0"  > /dev/null' >> ~/audio_setup.sh
+                audio="usb_audio"
+                break
+                ;;
+             4)
+                echo "$key - Google AIY Voice HAT and microphone board (Voice Kit v1)"
+                # Get AIY drivers
+                echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
+                wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 
-            sudo apt-get  -o Acquire::ForceIPv4=true update
-            # hack to get aiy-io-mcu-firmware to be installed
-            sudo mkdir /usr/lib/systemd/system
+                sudo apt-get  -o Acquire::ForceIPv4=true update
+                # hack to get aiy-io-mcu-firmware to be installed
+                sudo mkdir /usr/lib/systemd/system
 
-            sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
-            sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-            # At this time, 12/17/2018, installing aiy-python-wheels breaks the install
-            # https://community.mycroft.ai/t/setting-up-aiy-python-wheels-protobuf-not-supported-on-armv6-1/5130/2
-            # sudo apt-get install aiy-python-wheels
-            sudo apt-get install leds-ktd202x-dkms
+                sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
+                sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+                # At this time, 12/17/2018, installing aiy-python-wheels breaks the install
+                # https://community.mycroft.ai/t/setting-up-aiy-python-wheels-protobuf-not-supported-on-armv6-1/5130/2
+                # sudo apt-get install aiy-python-wheels
+                sudo apt-get install leds-ktd202x-dkms
 
-            # make soundcard recognizable
-            sudo sed -i \
-                -e "s/^dtparam=audio=on/#\0/" \
-                -e "s/^#\(dtparam=i2s=on\)/\1/" \
-                /boot/config.txt
-            grep -q -F "dtoverlay=i2s-mmap" /boot/config.txt || sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
-            grep -q -F "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+                # make soundcard recognizable
+                sudo sed -i \
+                    -e "s/^dtparam=audio=on/#\0/" \
+                    -e "s/^#\(dtparam=i2s=on\)/\1/" \
+                    /boot/config.txt
+                grep -q -F "dtoverlay=i2s-mmap" /boot/config.txt || sudo echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
+                grep -q -F "dtoverlay=googlevoicehat-soundcard" /boot/config.txt || sudo echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
 
-            # make changes to  mycroft.conf
-            sudo sed -i \
-                -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
-                -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
-                /etc/mycroft/mycroft.conf
+                # fix bug that where audio gets clipped by PulseAudio
+                # See: https://github.com/google/aiyprojects-raspbian/issues/297
+                sudo sed -i -e "s/^load-module module-suspend-on-idle/#load-module module-suspend-on-idle/" /etc/pulse/default.pa
 
-            # Install asound.conf
-            sudo cp AIY-asound.conf /etc/asound.conf
+                # Changes mycroft.conf to use the default output device
+                sudo sed -i \
+                    -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
+                    -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
+                    /etc/mycroft/mycroft.conf
 
-            # rebuild venv
-            bash mycroft-core/dev_setup.sh
+                # Install asound.conf
+                sudo cp AIY-asound.conf /etc/asound.conf
 
-            # TODO: reboot needed?
-            # YES reboot neded !
-            echo "Reboot is required, restarting in 5 seconds..."
-            audio="google_aiy"
-            save_choices
-            sleep 5
-            sudo reboot
-            ;;
-         5)
-            echo "$key - Seeed Mic Array v2.0"
+                # rebuild venv
+                bash mycroft-core/dev_setup.sh
 
-            # TODO: Can look for 2886:0018 with lsusb to verify mic is plugged in.
+                echo "Reboot is required, restarting in 5 seconds..."
+                audio="google_aiy"
+                setup_stage="aiy_reboot"
+                save_choices
+                sleep 5
+                sudo reboot
+                ;;
+             5)
+                echo "$key - Seeed Mic Array v2.0"
 
-            # Flash latest Seeed firmware
-            echo "Downloading and flashing latest firmware from Seeed..."
-            sudo /home/pi/mycroft-core/.venv/bin/pip install pyusb click
-            git clone https://github.com/respeaker/usb_4_mic_array.git
-            cd usb_4_mic_array
-            sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
-            cd ..
+                # TODO: Can look for 2886:0018 with lsusb to verify mic is plugged in.
 
-            # Configure Mycroft to use plughw:ArrayUAC10,0 (Seeed device)
-            sudo sed -i \
-                -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:ArrayUAC10,0 %1/" \
-                -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:ArrayUAC10,0 %1/" \
-                /etc/mycroft/mycroft.conf
+                # Flash latest Seeed firmware
+                echo "Downloading and flashing latest firmware from Seeed..."
+                sudo /home/pi/mycroft-core/.venv/bin/pip install pyusb click
+                git clone https://github.com/respeaker/usb_4_mic_array.git
+                cd usb_4_mic_array
+                sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
+                cd ..
 
-            audio="seed_mic_array_20"
-            break
-            ;;
-        esac
-    done
+                # Configure Mycroft to use plughw:ArrayUAC10,0 (Seeed device)
+                sudo sed -i \
+                    -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:ArrayUAC10,0 %1/" \
+                    -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:ArrayUAC10,0 %1/" \
+                    /etc/mycroft/mycroft.conf
+
+                audio="seed_mic_array_20"
+                break
+                ;;
+            esac
+        done
+    fi
+    if [ "$setup_stage" == "aiy_reboot" ] ; then
+        setup_stage=""
+    fi
 
     save_choices
 
@@ -371,6 +392,8 @@ function setup_wizard() {
     echo "  D)one!"
     while true; do
         if [ $audio == "seed_mic_array_20" ] ; then
+            # Unable to adjust volume via the Seeed, it must be at line level
+            # and controlled via an external mechanism.
             echo -n -e "\r[T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
         else
             echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
@@ -401,7 +424,8 @@ function setup_wizard() {
     done
 
     if [ "$lvl" != " " ] ; then
-        echo "amixer set PCM "$lvl"9%" >> ~/audio_setup.sh
+        echo "amixer set PCM "$lvl"9% > /dev/null" >> ~/audio_setup.sh
+        echo "amixer set Master "$lvl"9% > /dev/null" >> ~/audio_setup.sh
     fi
 
     echo
@@ -409,20 +433,22 @@ function setup_wizard() {
     echo "As a voice assistant, Mycroft needs to access a microphone to operate."
 
     while true; do
-        if [ "$audio" == "seed_mic_array_20" ]
-        then
+        if [ "$audio" == "seed_mic_array_20" ] ; then
             echo "Previously you chose a Seeed Mic Array 2.0 for audio output,"
             echo " so we will use that mic."
             mic="seed_mic_array_20"
+        elif  [ "$audio" == "google_aiy" ] ; then
+            # Google AIY includes both speaker and mic array
+            echo "Using Google AIY v1 mic array."
+            mic="google_aiy"
         else
             echo "Please ensure your microphone is connected and select from the following"
             echo "list of microphones:"
             echo "  1) PlayStation Eye (USB)"
             echo "  2) Blue Snoball ICE (USB)"
-            echo "  3) Google AIY Voice HAT and microphone board (Voice Kit v1)"
-            echo "  4) Matrix Voice HAT."
-            echo "  5) Other (unsupported -- good luck!)"
-            echo -n "Choice [1-5]: "
+            echo "  3) Matrix Voice HAT."
+            echo "  4) Other (unsupported -- good luck!)"
+            echo -n "Choice [1-4]: "
             echo
             while true; do
                 read -N1 -s key
@@ -440,22 +466,17 @@ function setup_wizard() {
                     break
                     ;;
                 3)
-                    echo "$key - Google AIY Voice Hat"
-                    mic="google_aiy"
-                    break
-                    ;;
-                4)
                     echo "$key - Matrix Voice Hat"
-                    echo "The setup script for Matrix Voice Hat will run at the end of"
-                    echo "The setup wizard. Press any key to continue..."
-                    read -N1 -s anykey
-                    touch setup_matrix  # setting flag to run setup_matrix_voice.sh
+                    echo "The Matrix Voice Hat setup will run at the end of the setup"
+                    echo "wizard, as it requires several reboots."
+
+                    touch ~/.setup_matrix  # flag to run Matrix install at the end
                     skip_mic_test=true
                     skip_last_prompt=true
                     mic="matrix_voice"
                     break
                     ;;
-                5)
+                4)
                     echo "$key - Other"
                     echo "Other microphone _might_ work, but there are no guarantees."
                     echo "We'll run the tests, but you are on your own.  If you have"
@@ -646,7 +667,10 @@ function setup_wizard() {
 }
 
 function speak() {
+    # Generate TTS audio using Mimic 1
     ~/mycroft-core/mimic/bin/mimic -t $@ -o /tmp/speak.wav
+
+    # Play the audio using the configured WAV output mechanism
     wavcmd=$( jq -r ".play_wav_cmdline" /etc/mycroft/mycroft.conf )
     wavcmd="${wavcmd/\%1/\/tmp\/speak.wav}"
     $( $wavcmd >/dev/null 2>&1 )
@@ -700,50 +724,54 @@ alias mycroft-setup-wizard="cd ~ && touch first_run && source auto_run.sh"
 
 if [ -f ~/first_run ]
 then
-    echo
-    echo "Welcome to Picroft.  This image is designed to make getting started with"
-    echo "Mycroft quick and easy.  Would you like help setting up your system?"
-    echo "  Y)es, I'd like the guided setup."
-    echo "  N)ope, just get me a command line and get out of my way!"
-    echo -n "Choice [Y/N]: "
-    while true; do
-        read -N1 -s key
-        case $key in
-         [Nn])
-            echo $key
-            echo
-            echo "Alright, have fun!"
-            echo "NOTE: If you decide to use the wizard later, just type 'mycroft-setup-wizard'"
-            echo "      and reboot."
-            break
-            ;;
-         [Yy])
-            echo $key
-            echo
-            setup_wizard
-            break
-            ;;
-        esac
-    done
+    if [ -z "$setup_stage" ] ; then
+        echo
+        echo "Welcome to Picroft.  This image is designed to make getting started with"
+        echo "Mycroft quick and easy.  Would you like help setting up your system?"
+        echo "  Y)es, I'd like the guided setup."
+        echo "  N)ope, just get me a command line and get out of my way!"
+        echo -n "Choice [Y/N]: "
+        while true; do
+            read -N1 -s key
+            case $key in
+             [Nn])
+                echo $key
+                echo
+                echo "Alright, have fun!"
+                echo "NOTE: If you decide to use the wizard later, just type 'mycroft-setup-wizard'"
+                echo "      and reboot."
+                break
+                ;;
+             [Yy])
+                echo $key
+                echo
+                setup_wizard
+                break
+                ;;
+            esac
+        done
+    else
+        echo "Continuing setup..."
+        echo setup_wizard
+    fi
 
    # Delete to flag setup is complete
     rm ~/first_run
 fi
 
-# Matrix Voice Hat Setup
-if [ -f ~/setup_matrix ]
+# Special Matrix Voice Hat setup (multiple reboots required)
+if [ -f ~/.setup_matrix ]
 then
     if [ ! -f matrix_setup_state.txt ]
     then
         echo ""
         echo "========================================================================="
-        echo "Setting up Matrix Voice Hat. This will install the matrixio-kernel-modules and pulseaudio"
-        echo "This process is automatic, but requires rebooting three times. Please be patient"
-        echo "Press any key to continue..."
-        read -N1 -s anykey
+        echo "Installing drivers for Matrix Voice Hat.  This process is automatic, but "
+        echo "requires several reboots.  Thanks for your patience!"
+        echo
+        sleep 2
     else
-        echo "Press any key to continue setting up Matrix Voice HAT"
-        read -N1 -s anykey
+        echo "Continuing setup of Matrix Voice HAT"
     fi
 
     if [ ! -f matrix_setup_state.txt ]
@@ -755,9 +783,9 @@ then
         sudo apt-get -o Acquire::ForceIPv4=true update -y
         sudo apt-get -o Acquire::ForceIPv4=true upgrade -y
 
+        echo "Rebooting to apply kernel updates..."
         echo "stage-1" > matrix_setup_state.txt
-        echo "Rebooting to apply kernel updates, the installation will resume afterwards"
-        read -p "Press enter to continue reboot"
+        sleep 2
         sudo reboot
     else
         matrix_setup_state=$( cat matrix_setup_state.txt)
@@ -768,12 +796,9 @@ then
         echo "Installing matrixio-kernel-modules..."
         sudo apt install matrixio-kernel-modules -y
 
-        echo "installing pulseaudio"
-        sudo apt-get install pulseaudio -y
-
-        echo "Rebooting to apply audio subsystem changes, the installation will continue afterwards."
-        read -p "Press enter to continue reboot"
+        echo "Rebooting to apply audio subsystem changes..."
         echo "stage-2" > matrix_setup_state.txt
+        sleep 2
         sudo reboot
     fi
 
@@ -786,8 +811,8 @@ then
         pulseaudio -k
         pactl set-default-source 2
         pulseaudio --start
-        amixer set Master 99%
-        echo "amixer set Master 99%" >> audio_setup.sh
+        amixer set Master 75%
+        echo "amixer set Master 75% > /dev/null" >> audio_setup.sh
         sleep 2
         amixer
 
@@ -800,12 +825,12 @@ then
         bash mycroft-core/dev_setup.sh
 
         echo "stage-3" > matrix_setup_state.txt
-        read -p "Your Matrix microphone is now setup! Press enter to perform the final reboot and start Mycroft."
+        echo "Your Matrix microphone is now setup! One more reboot to start Mycroft..."
         sudo reboot
     fi
 
     rm ~/matrix_setup_state.txt
-    rm ~/setup_matrix
+    rm ~/.setup_matrix
 fi
 
 
@@ -820,6 +845,7 @@ then
     # Default to analog audio jack at 75% volume
     amixer cset numid=3 "1" > /dev/null
     amixer set PCM 75% > /dev/null
+    amixer set Master 75% > /dev/null
 
     # Check for custom audio setup
     if [ -f audio_setup.sh ]
@@ -843,11 +869,12 @@ then
         cd ~
     fi
 
+    # Auto-update to latest version of Picroft scripts and mycroft-core
     update_software
 
     # Launch Mycroft Services ======================
-    bash  "$HOME/mycroft-core/start-mycroft.sh" all
-    
+    bash "$HOME/mycroft-core/start-mycroft.sh" all
+
     # Display success/welcome message for user
     echo
     echo
@@ -866,5 +893,5 @@ else
     echo "again by entering:  mycroft-cli-client"
     echo
     sleep 2
-   "$HOME/mycroft-core/start-mycroft.sh" cli
+    "$HOME/mycroft-core/start-mycroft.sh" cli
 fi
