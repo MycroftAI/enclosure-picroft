@@ -91,7 +91,7 @@ cd ~
 wget -N $REPO_PATH/home/pi/.bashrc
 wget -N $REPO_PATH/home/pi/auto_run.sh
 wget -N $REPO_PATH/home/pi/version
-wget -N $REPO_PATH/home/pi/update.sh
+wget -N $REPO_PATH/home/pi/update.sh  # updated within auto_run.sh, but download in case run directly
 
 cd ~/bin
 wget -N $REPO_PATH/home/pi/bin/mycroft-wipe
