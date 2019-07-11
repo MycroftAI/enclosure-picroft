@@ -1,7 +1,7 @@
 # It's Alive!
 ![Lightning over Plexpod](https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/lightning-2018-08-01.jpg )
 
-## Picroft - 2018-09-11 Stretch Lightning release
+## Picroft - 2019-07-10 Stretch Lightning release
 
 Picroft is an enclosure for a Raspberry Pi 3 or 3B+ connected to a speaker and
 microphone, bringing Mycroft to anyone who wants a simple voice interface they
@@ -11,15 +11,15 @@ Lite image.
 The entire project is available as a pre-built micro-SD image ready to be burned
 and placed into a Raspberry Pi. You can download the pre-built image here:
 
- [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Stable 2018-09-12 image](https://mycroft.ai/to/picroft-image)
+ [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Stable 2019-07-10 image](https://mycroft.ai/to/picroft-image)
 
 SHA-256: 98f0a28127418277f0170a692e8a95cdf6b8cb6e679d026cb515dd697f4749fb
 
-[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2018-12-17 image](https://mycroft.ai/to/picroft-unstable)
+[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2019-07-10 image](https://mycroft.ai/to/picroft-unstable)
 
-SHA-256: 00b6a14a2b2df7ccf09e8c3af47bb9171283be42dc8f883ee0dc5367e19d3111
+SHA-256: 35608586658a795a1e9b671ec84fd8b74d2c70c32e1bb44b6ce9052f9800bf6e
 
-Optionally you can build it  yourself by following the [Recipe for building the image](image_recipe.md)
+Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
 ## Requirements
 
@@ -28,7 +28,7 @@ Optionally you can build it  yourself by following the [Recipe for building the 
 * **Speaker**
   <br>Any analog speaker, or an HDMI monitor with speaker
 * **Microphone**
-  <br>Tested with: PlayStation Eye, Blue Snowball, Google AIY
+  <br>Tested with: PlayStation Eye, Blue Snowball, Google AIY v1, Seeed Studio Mic Array 2.0, Matrix Voice
 * **2.5 Amp or better power supply**
   <br>Don't skimp on this!  It might appear to work, but you'll have weird issues with a cheapo supply.
 * **MicroSD Card**
@@ -74,8 +74,7 @@ There is an active *Picroft* community within the [Mycroft's Mattermost chat](ht
 
 ### FAQ
 ##### Q1) Why "Stretch Lightning"?
-Because the image is built on Raspbian Stretch, and the lightning seen above was captured from the roof
-to building the night I started this rework.
+Because the image is built on Raspbian Stretch, and the lightning seen above was captured from the roof the night I started this rework.
 
 ##### Q2) Can I run this with a the Raspbian desktop GUI?
 Sadly, not really.  A Raspberry Pi is powerful, but still not well suited to do _everything_ at
