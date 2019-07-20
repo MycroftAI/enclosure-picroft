@@ -41,15 +41,15 @@ else
 fi
 
 function save_choices() {
-    echo '{' >  ~/.setup_choices
-    if [ "$audio" != "" ] && [ "$audio" != "null" ] ; then
-        echo '  "audio": "'${audio}'",' >>  ~/.setup_choices
+    JSON='{}'
+    if [[ "$audio" != ""  && "$audio" != "null" ]] ; then
+        JSON=$(echo $JSON | jq --arg audio $audio '. + {audio: $audio}')
     fi
-    if [ "$mic" != "" ] && [ "$mic" != "null" ] ; then
-        echo '  "mic": "'${mic}'",' >>  ~/.setup_choices
+    if [[ "$mic" != "" && "$mic" != "null" ]] ; then
+        JSON=$(echo $JSON | jq --arg mic $mic '. + {mic: $mic}')
     fi
-    echo '  "setup_stage": "'${setup_stage}'",' >>  ~/.setup_choices
-    echo '}' >>  ~/.setup_choices
+    JSON=$(echo $JSON | jq --arg stage $setup_stage '. + {setup_stage: $stage}')
+    echo "$JSON" > ~/.setup_choices
 }
 
 function network_setup() {
