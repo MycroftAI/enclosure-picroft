@@ -58,6 +58,7 @@ then
 
     # Download and setup Mycroft-core
     echo "Installing 'git'..."
+    sudo apt-get update
     sudo apt-get install git -y
 
     echo "Downloading 'mycroft-core'..."
