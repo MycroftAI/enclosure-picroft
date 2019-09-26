@@ -48,8 +48,8 @@ function save_choices() {
     if [[ "$mic" != "" && "$mic" != "null" ]] ; then
         JSON=$(echo $JSON | jq --arg mic $mic '. + {mic: $mic}')
     fi
-    if [[ "$stage" != "" && "$stage" != "null" ]] ; then
-        JSON=$(echo $JSON | jq --arg stage $setup_stage '. + {setup_stage: $stage}')
+    if [[ "$setup_stage" != "" && "$setup_stage" != "null" ]] ; then
+        JSON=$(echo $JSON | jq --arg stage $setup_stage '. + {setup_stage: $setup_stage}')
     fi
     echo "$JSON" > ~/.setup_choices
 }
