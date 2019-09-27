@@ -16,9 +16,9 @@ here:
 
 SHA-256: 6fe5ca091efa65899063793ecb1182c1e529dffb01ceea4b2283e6c75ccf5d10
 
-[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2019-07-20 image (currently the same a stable)](https://mycroft.ai/to/picroft-unstable)
+[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2019-09-26 image](https://mycroft.ai/to/picroft-unstable)
 
-SHA-256: 6fe5ca091efa65899063793ecb1182c1e529dffb01ceea4b2283e6c75ccf5d10
+SHA-256: 2c1ec01d3e81beb910e5ff7275fb5b21537b58f071d2b10a33675d6597c71011
 
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
