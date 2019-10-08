@@ -30,8 +30,7 @@ Optionally you can build it yourself by following the [Recipe for building the i
 * **Speaker**
   <br>Any analog speaker, or an HDMI monitor with speaker
 * **Microphone**
-  <br>Tested with: PlayStation Eye; Blue Snowball; Google AIY v1; Seeed Studio
-  Mic Array 2.0; Matrix Voice; Logitech Webcam Pro 9000, C525 and C270.
+  <br>A [list of Community tested hardware](https://mycroft-ai.gitbook.io/docs/using-mycroft-ai/get-mycroft/picroft#tested-hardware) is available in our documentation.
 * **2.5 Amp or better power supply**
   <br>Don't skimp on this!  It might appear to work, but you'll have weird
   issues with a cheapo supply.
