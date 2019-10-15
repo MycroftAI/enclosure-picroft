@@ -1,13 +1,13 @@
 # Recipe for creating the Picroft IMG
 
-These are the steps followed to create the base image for Picroft on Raspbian Stretch.  This was performed on a Raspberry Pi 3B+
+These are the steps followed to create the base image for Picroft on Raspbian Buster.  This was performed on a Raspberry Pi 3B+ or Pi 4
 
 NOTE: At startup Picroft will automatically update itself to the latest version of released software, scripts and Skills.
 
 
 ### Start with the official Raspbian Image
-* Download and burn [Raspbian Stretch Lite](https://downloads.raspberrypi.org/raspbian_lite_latest).
-  <br>_Last used 2019-04-08 version_
+* Download and burn [Raspbian Buster Lite](https://downloads.raspberrypi.org/raspbian_lite_latest).
+  <br>_Last used 2019-09-26 version_
 * Install into Raspberry Pi and boot
   - login: pi
   - password: raspberry
@@ -49,19 +49,28 @@ NOTE: At startup Picroft will automatically update itself to the latest version 
 
 ### Connect to the network
 * Either plug in Ethernet or
+
+  __or__
+* Guided wifi setup
+  * ```sudo raspi-config```
+    - 2 Network Options
+      - N2 Wi-fi
+
+  __or__
+* Manually setup wifi
   * ```sudo nano /etc/wpa_supplicant/wpa_supplicant.conf```
   * Enter network creds:
     ```
     network={
             ssid="NETWORK"
-            psk="WIFI_PASSWORD"  # for one with password
-            key_mgmt=NONE        # for open
+            psk="WIFI_PASSWORD"  # for network with password
+            key_mgmt=NONE        # for open network
     }
     ```
 
 ## Install Picroft scripts
 * cd ~
-* wget -N https://rawgit.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+* wget -N https://rawgit.com/MycroftAI/enclosure-picroft/buster/home/pi/update.sh
 * bash update.sh
 
 **The update.sh script will perform all of the following steps in this section...**
@@ -113,11 +122,11 @@ When asked by dev_setup, answer as follows:
 * ```git checkout master```
 * ```bash dev_setup.sh```
 
-(Wait an hour on a RPi3B+)
+(Wait an hour on a RPi 3B+/4)
 
 ## Final steps
 * Run ```. ~/bin/mycroft-wipe --keep-skills```
 * Remove the SD card
-* Create an IMG file named "raspbian-stretch_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
+* Create an IMG file named "raspbian-buster_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
 * Compress the IMG using pishrink.sh
 * Upload and adjust redirect link from https://mycroft.ai/to/picroft-image or https://mycroft.ai/to/picroft-unstable

@@ -40,21 +40,23 @@ then
     esac
 
     # Create basic folder structures
-    sudo mkdir /etc/mycroft/
-    mkdir ~/bin
+    sudo mkdir -p /etc/mycroft/
+    mkdir -p ~/bin
 
     # Get the Picroft conf file
     cd /etc/mycroft
     sudo wget -N $REPO_PATH/etc/mycroft/mycroft.conf
 
     # Enable Autologin as the 'pi' user
-    echo "[Service]" | sudo tee -a /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    echo "[Service]" | sudo tee /etc/systemd/system/getty@tty1.service.d/autologin.conf
     echo "ExecStart=" | sudo tee -a /etc/systemd/system/getty@tty1.service.d/autologin.conf
     echo "ExecStart=-/sbin/agetty --autologin pi --noclear %I 38400 linux" | sudo tee -a /etc/systemd/system/getty@tty1.service.d/autologin.conf
     sudo systemctl enable getty@tty1.service
 
     # Create RAM disk (the Picroft version of mycroft.conf point at it)
-    echo "tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0" | sudo tee -a /etc/fstab
+    if ! grep -Fq "tmpfs /ramdisk" /etc/fstab ; then
+        echo "tmpfs /ramdisk tmpfs rw,nodev,nosuid,size=20M 0 0" | sudo tee -a /etc/fstab
+    fi
 
     # Download and setup Mycroft-core
     echo "Installing 'git'..."
@@ -78,7 +80,7 @@ then
 
     echo
     echo "Retrieving default skills"
-    sudo mkdir /opt/mycroft
+    sudo mkdir -p /opt/mycroft
     sudo chown pi:pi /opt/mycroft
     ~/mycroft-core/bin/mycroft-msm default
 

@@ -54,6 +54,21 @@ function save_choices() {
     echo "$JSON" > ~/.setup_choices
 }
 
+function set_volume() {
+    # Use amixer to set the volume level
+    # This attempts to set both "Master" and "PCM"
+
+    amixer set PCM $@ > /dev/null 2>&1
+    amixer set Master $@ > /dev/null 2>&1
+}
+
+function save_volume() {
+    # Save command to amixer to set the volume level
+
+    echo "amixer set PCM $@ > /dev/null 2>&1" >> ~/audio_setup.sh
+    echo "amixer set Master $@ > /dev/null 2>&1" >> ~/audio_setup.sh
+}
+
 function network_setup() {
     # silent check at first
     if ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1 ; then
@@ -64,7 +79,7 @@ function network_setup() {
     # plugged in a network cable.
     show_prompt=1
     should_reboot=255
-    reset_wifi=0
+    verify_wifi_countdown=0
 
     while ! ping -q -c 1 -W 1 1.1.1.1 >/dev/null 2>&1 ; do  # check for network connection
         if [ $show_prompt = 1 ]
@@ -103,7 +118,7 @@ function network_setup() {
                 echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "        psk=\"$user_pwd\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
-                reset_wifi=5  # reset wpa and start timer to verify connection
+                verify_wifi_countdown=20
             else
                 show_prompt=1
             fi
@@ -119,14 +134,14 @@ function network_setup() {
                 echo "        ssid=\"$user_ssid\"" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "        key_mgmt=NONE" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
                 echo "}" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf > /dev/null
-                reset_wifi=5  # reset wpa and start timer to verify connection
+                verify_wifi_countdown=20
             else
                 show_prompt=1
             fi
             ;;
          3)
             sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
-            reset_wifi=5
+            verify_wifi_countdown=20
             ;;
          4)
             should_reboot=1
@@ -138,39 +153,25 @@ function network_setup() {
             ;;
         esac
 
-        if [[ $reset_wifi -gt 0 ]]
+        if [[ $verify_wifi_countdown -gt 0 ]]
         then
-            if [[ $reset_wifi -eq 5 ]]
+            if [[ $verify_wifi_countdown -eq 20 ]]
             then
                 echo -n "Reconfiguring WLAN0..."
                 wpa_cli -i wlan0 reconfigure
                 echo -n "Detecting network connection."
                 sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-                echo -n "."
-                sleep 1
-            elif [[ $reset_wifi -eq 1 ]]
+            elif [[ $verify_wifi_countdown -eq 1 ]]
             then
-                # Wireless network connection didn't come up within 8 seconds
-                echo "Failed to connect to network."
+                # Wireless network connection didn't come up within 20 seconds
+                echo "Failed to connect to network, please try again."
                 show_prompt=1
+            else
+                echo -n "."
             fi
 
             # decrement the counter every second
-            reset_wifi= expr $reset_wifi - 1
+            ((verify_wifi_countdown -= 1))
         fi
 
     done
@@ -194,7 +195,7 @@ function update_software() {
         echo "This might take a few minutes, please be patient..."
 
         cd /tmp
-        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/version >/dev/null
+        wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/buster/home/pi/version >/dev/null
         if [ $? -eq 0 ]
         then
             if [ ! -f ~/version ] ; then
@@ -208,7 +209,7 @@ function update_software() {
                 echo "**** Update found, downloadling new Picroft scripts!"
                 speak "Updating Picroft, please hold on."
 
-                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch/home/pi/update.sh
+                wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/buster/home/pi/update.sh
                 if [ $? -eq 0 ]
                 then
                     source update.sh
@@ -405,7 +406,7 @@ function setup_wizard() {
          [1-9])
             lvl=$key
             # Set volume between 19% and 99%.  Lazily not allowing 100% :)
-            amixer set Master "${lvl}9%" > /dev/null
+            set_volume "${lvl}9%"
             echo -e -n "\b$lvl PLAYING"
             speak "Test"
             ;;
@@ -414,7 +415,7 @@ function setup_wizard() {
             sudo reboot
             ;;
          [Tt])
-            amixer set Master '${lvl}9%' > /dev/null
+            set_volume "${lvl}9%"
             echo -e -n "\b$lvl PLAYING"
             speak "Test"
             ;;
@@ -426,8 +427,7 @@ function setup_wizard() {
     done
 
     if [ "$lvl" != " " ] ; then
-        echo "amixer set PCM "$lvl"9% > /dev/null" >> ~/audio_setup.sh
-        echo "amixer set Master "$lvl"9% > /dev/null" >> ~/audio_setup.sh
+        save_volume "${lvl}9%"
     fi
 
     echo
@@ -449,7 +449,7 @@ function setup_wizard() {
             echo "  1) PlayStation Eye (USB)"
             echo "  2) Blue Snoball ICE (USB)"
             echo "  3) Matrix Voice HAT."
-            echo "  4) Other (unsupported -- good luck!)"
+            echo "  4) Other USB microphone (unsupported -- good luck!)"
             echo -n "Choice [1-4]: "
             echo
             while true; do
@@ -605,6 +605,7 @@ function setup_wizard() {
     done
 
 
+    echo
     echo "Unlike standard Raspbian which has a user 'pi' with a password 'raspberry',"
     echo "the Picroft image uses the following as default username and password:"
     echo "  Default user:      pi"
@@ -722,10 +723,12 @@ echo "***********************************************************************"
 sleep 2  # give user a few moments to notice the version
 
 
-alias mycroft-setup-wizard="cd ~ && touch first_run && source auto_run.sh"
+alias mycroft-setup-wizard="cd ~ && touch first_run && rm -f .setup_choices && rm -f .setup_stage && source auto_run.sh"
 
 if [ -f ~/first_run ]
 then
+    $(bash "$HOME/mycroft-core/stop-mycroft.sh" all > /dev/null)
+
     if [ -z "$setup_stage" ] ; then
         echo
         echo "Welcome to Picroft.  This image is designed to make getting started with"
@@ -813,10 +816,8 @@ then
         pulseaudio -k
         pactl set-default-source 2
         pulseaudio --start
-        amixer set Master 75%
-        echo "amixer set Master 75% > /dev/null" >> audio_setup.sh
+        save_volume 75%
         sleep 2
-        amixer
 
         mycroft-mic-test
 
@@ -846,8 +847,7 @@ then
     #
     # Default to analog audio jack at 75% volume
     amixer cset numid=3 "1" > /dev/null
-    amixer set PCM 75% > /dev/null
-    amixer set Master 75% > /dev/null
+    set_volume 75%
 
     # Check for custom audio setup
     if [ -f audio_setup.sh ]
