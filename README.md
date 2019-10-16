@@ -16,9 +16,9 @@ here:
 
 SHA-256: 6fe5ca091efa65899063793ecb1182c1e529dffb01ceea4b2283e6c75ccf5d10
 
-[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2019-09-26 image](https://mycroft.ai/to/picroft-unstable)
+[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2019-10-16 image](https://mycroft.ai/to/picroft-unstable)
 
-SHA-256: TBD...
+SHA-256: 6dd729d644058a992beacdd3d5b9e840fd22df4c7dafb4a2af03b4e8e9328f18
 
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 

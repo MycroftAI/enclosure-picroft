@@ -19,9 +19,9 @@
 # update.sh
 ##########################################################################
 # This script is executed by the auto_run.sh when a new version is found
-# at https://github.com/MycroftAI/enclosure-picroft/tree/stretch
+# at https://github.com/MycroftAI/enclosure-picroft/tree/buster
 
-REPO_PATH="https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/stretch"
+REPO_PATH="https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/buster"
 
 if [ ! -f /etc/mycroft/mycroft.conf ] ;
 then
