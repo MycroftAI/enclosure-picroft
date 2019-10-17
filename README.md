@@ -12,21 +12,23 @@ The entire project is available as a pre-built micro-SD image ready to be
 burned and placed into a Raspberry Pi. You can download the pre-built image
 here:
 
- [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Stable 2019-07-20 image](https://mycroft.ai/to/picroft-image)
-
-SHA-256: 6fe5ca091efa65899063793ecb1182c1e529dffb01ceea4b2283e6c75ccf5d10
-
-[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2019-09-26 image](https://mycroft.ai/to/picroft-unstable)
+ [![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Stable 2019-09-26 Stretch image](https://mycroft.ai/to/picroft-image)
 
 SHA-256: 2c1ec01d3e81beb910e5ff7275fb5b21537b58f071d2b10a33675d6597c71011
+
+[![Download img](https://github.com/MycroftAI/enclosure-picroft/raw/master/microsd-icon.png "Download img") Picroft Unstable 2019-10-16 Buster image](https://mycroft.ai/to/picroft-unstable)
+
+SHA-256: 6dd729d644058a992beacdd3d5b9e840fd22df4c7dafb4a2af03b4e8e9328f18
 
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
 ## Requirements
 
-* **Raspberry Pi 3 or 3B+**
+* **Stable Stretch image - Raspberry Pi 3 or 3B+**
   <br>_Older Raspberry Pi versions do not have sufficient processing power,
-  and if they work they will be very slow_
+  and if they work they will be very slow_  
+  **Unstable Buster image - Raspberry Pi 4**  
+  The current unstable image is our first official image that supports the Raspberry Pi 4.
 * **Speaker**
   <br>Any analog speaker, or an HDMI monitor with speaker
 * **Microphone**
