@@ -26,6 +26,12 @@
 # default volume; use custom_setup.sh to initialize any other IoT devices.
 #
 
+if [ "$SSH_CLIENT" = "" ] && [ "$(/usr/bin/tty)" != "/dev/tty1" ]; then
+    # Quit immediately when running on a local non-primary terminal,
+    # e.g. when you hit Ctrl+Alt+F2 to open the second term session
+    return 0
+fi
+
 export PATH="$HOME/bin:$HOME/mycroft-core/bin:$PATH"
 
 # Read any saved setup choices
@@ -40,6 +46,19 @@ else
     setup_stage=""
 fi
 
+function found_exe() {
+    hash "$1" 2>/dev/null
+}
+
+if found_exe tput ; then
+    GREEN="$(tput setaf 2)"
+    BLUE="$(tput setaf 4)"
+    CYAN="$(tput setaf 6)"
+    YELLOW="$(tput setaf 3)"
+    RESET="$(tput sgr0)"
+    HIGHLIGHT=${YELLOW}
+fi
+
 function save_choices() {
     JSON='{}'
     if [[ "$audio" != ""  && "$audio" != "null" ]] ; then
@@ -49,7 +68,7 @@ function save_choices() {
         JSON=$(echo $JSON | jq --arg mic $mic '. + {mic: $mic}')
     fi
     if [[ "$setup_stage" != "" && "$setup_stage" != "null" ]] ; then
-        JSON=$(echo $JSON | jq --arg stage $setup_stage '. + {setup_stage: $setup_stage}')
+        JSON=$(echo $JSON | jq --arg setup_stage $setup_stage '. + {setup_stage: $setup_stage}')
     fi
     echo "$JSON" > ~/.setup_choices
 }
@@ -91,7 +110,7 @@ function network_setup() {
             echo "  3) Edit wpa_supplicant.conf directly"
             echo "  4) Force reboot"
             echo "  5) Skip network setup for now"
-            echo -n "Choice [1-6]: "
+            echo -n "${HIGHLIGHT}Choice [1-6]:${RESET} "
             show_prompt=0
         fi
 
@@ -103,12 +122,12 @@ function network_setup() {
         case $pressed in
          1)
             echo
-            echo -n "Enter a network SSID: "
+            echo -n "${HIGHLIGHT}Enter a network SSID:${RESET} "
             read user_ssid
-            echo -n "Enter the password: "
+            echo -n "${HIGHLIGHT}Enter the password:{RESET} "
             read -s user_pwd
             echo
-            echo -n "Enter the password again: "
+            echo -n "${HIGHLIGHT}Enter the password again:{RESET} "
             read -s user_confirm
             echo
 
@@ -125,7 +144,7 @@ function network_setup() {
             ;;
          2)
             echo
-            echo -n "Enter a network SSID: "
+            echo -n "${HIGHLIGHT}Enter a network SSID:${RESET} "
             read user_ssid
 
             if [ ! "$user_ssid" = "" ]
@@ -249,7 +268,7 @@ function setup_wizard() {
         save_choices
         sudo reboot
     fi
-    if [ "$setup_stage" == "net_reboot" ] ; then
+    if [ "$setup_stage" = "net_reboot" ] ; then
         setup_stage=""
         save_choices
     fi
@@ -274,37 +293,40 @@ function setup_wizard() {
         echo "  2) HDMI audio (e.g. a TV or monitor with built-in speakers)"
         echo "  3) USB audio (e.g. a USB soundcard or USB mic/speaker combo)"
         echo "  4) Google AIY Voice HAT and microphone board (Voice Kit v1)"
-        echo "  5) Seeed Mic Array v2.0 (speaker plugged in to Mic board)"
-        echo -n "Choice [1-5]: "
+        echo "  5) ReSpeaker Mic Array v2.0 (speaker plugged in to Mic board)"
+        echo -n "${HIGHLIGHT}Choice [1-5]:${RESET} "
         while true; do
             read -N1 -s key
             case $key in
              1)
                 echo "$key - Analog audio"
                 # audio out the analog speaker/headphone jack
-                sudo amixer cset numid=3 "1" > /dev/null
-                echo 'sudo amixer cset numid=3 "1" > /dev/null' >> ~/audio_setup.sh
+                sudo amixer cset numid=3 "1" > /dev/null 2>&1
+                echo 'sudo amixer cset numid=3 "1" > /dev/null 2>&1' >> ~/audio_setup.sh
                 audio="analog_audio"
                 break
                 ;;
              2)
                 echo "$key - HDMI audio"
                 # audio out the HDMI port (e.g. TV speakers)
-                sudo amixer cset numid=3 "2" > /dev/null
-                echo 'sudo amixer cset numid=3 "2"  > /dev/null' >> ~/audio_setup.sh
+                sudo amixer cset numid=3 "2" > /dev/null 2>&1
+                echo 'sudo amixer cset numid=3 "2"  > /dev/null 2>&1' >> ~/audio_setup.sh
                 audio="hdmi_audio"
                 break
                 ;;
              3)
                 echo "$key - USB audio"
                 # audio out to the USB soundcard
-                sudo amixer cset numid=3 "0" > /dev/null
-                echo 'sudo amixer cset numid=3 "0"  > /dev/null' >> ~/audio_setup.sh
+                sudo amixer cset numid=3 "0" > /dev/null 2>&1
+                echo 'sudo amixer cset numid=3 "0"  > /dev/null 2>&1' >> ~/audio_setup.sh
                 audio="usb_audio"
                 break
                 ;;
              4)
                 echo "$key - Google AIY Voice HAT and microphone board (Voice Kit v1)"
+                setup_stage="aiy_setup"
+                save_choices
+
                 # Get AIY drivers
                 echo "deb https://dl.google.com/aiyprojects/deb stable main" | sudo tee /etc/apt/sources.list.d/aiyprojects.list
                 wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
@@ -313,12 +335,12 @@ function setup_wizard() {
                 # hack to get aiy-io-mcu-firmware to be installed
                 sudo mkdir /usr/lib/systemd/system
 
-                sudo apt-get install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
-                sudo apt-get install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
+                sudo apt-get -y install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
+                sudo apt-get -y install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
                 # At this time, 12/17/2018, installing aiy-python-wheels breaks the install
                 # https://community.mycroft.ai/t/setting-up-aiy-python-wheels-protobuf-not-supported-on-armv6-1/5130/2
-                # sudo apt-get install aiy-python-wheels
-                sudo apt-get install leds-ktd202x-dkms
+                # sudo apt-get install -y aiy-python-wheels
+                sudo apt-get -y install leds-ktd202x-dkms
 
                 # make soundcard recognizable
                 sudo sed -i \
@@ -376,7 +398,7 @@ function setup_wizard() {
             esac
         done
     fi
-    if [ "$setup_stage" == "aiy_reboot" ] ; then
+    if [ "$setup_stage" = "aiy_reboot" ] ; then
         setup_stage=""
     fi
 
@@ -385,7 +407,7 @@ function setup_wizard() {
     lvl=7
     echo
     echo "Let's test and adjust the volume:"
-    if [ $audio == "seed_mic_array_20" ] ; then
+    if [ $audio = "seed_mic_array_20" ] ; then
         lvl=" "
     else
         echo "  1-9) Set volume level (1-quietest, 9=loudest)"
@@ -394,12 +416,12 @@ function setup_wizard() {
     echo "  R)eboot (needed if you just plugged in a USB speaker)"
     echo "  D)one!"
     while true; do
-        if [ $audio == "seed_mic_array_20" ] ; then
+        if [ $audio = "seed_mic_array_20" ] ; then
             # Unable to adjust volume via the Seeed, it must be at line level
             # and controlled via an external mechanism.
-            echo -n -e "\r[T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
+            echo -n -e "\r${HIGHLIGHT}[T/D/R]:${RESET} ${lvl}          \b\b\b\b\b\b\b\b\b\b"
         else
-            echo -n -e "\rLevel [1-9/T/D/R]: ${lvl}          \b\b\b\b\b\b\b\b\b\b"
+            echo -n -e "\r${HIGHLIGHT}Level [1-9/T/D/R]:${RESET} ${lvl}          \b\b\b\b\b\b\b\b\b\b"
         fi
         read -N1 -s key
         case $key in
@@ -435,11 +457,11 @@ function setup_wizard() {
     echo "As a voice assistant, Mycroft needs to access a microphone to operate."
 
     while true; do
-        if [ "$audio" == "seed_mic_array_20" ] ; then
+        if [ "$audio" = "seed_mic_array_20" ] ; then
             echo "Previously you chose a Seeed Mic Array 2.0 for audio output,"
             echo " so we will use that mic."
             mic="seed_mic_array_20"
-        elif  [ "$audio" == "google_aiy" ] ; then
+        elif  [ "$audio" = "google_aiy" ] ; then
             # Google AIY includes both speaker and mic array
             echo "Using Google AIY v1 mic array."
             mic="google_aiy"
@@ -450,8 +472,7 @@ function setup_wizard() {
             echo "  2) Blue Snoball ICE (USB)"
             echo "  3) Matrix Voice HAT."
             echo "  4) Other USB microphone (unsupported -- good luck!)"
-            echo -n "Choice [1-4]: "
-            echo
+            echo -n "${HIGHLIGHT}Choice [1-4]:${RESET} "
             while true; do
                 read -N1 -s key
                 case $key in
@@ -491,14 +512,14 @@ function setup_wizard() {
             done
         fi
 
-        if [ ! $skip_mic_test ]; then
+        if [ "$skip_mic_test" != true ]; then
             echo
             echo "Testing microphone..."
-            echo "In a few seconds you will see some initialization messages, then a prompt"
-            echo "to speak.  Say something like 'testing 1 2 3 4 5 6 7 8 9 10'.  After"
-            echo "10 seconds, the sound heard through the microphone will be played back."
+            echo "When prompted, say something like 'testing 1 2 3 4 5 6 7 8 9 10'."
+            echo "After 10 seconds, the sound heard through the microphone play back"
+            echo "for microphone verification."
             echo
-            echo "Press any key to begin the test..."
+            echo "${HIGHLIGHT}Press any key to begin the test...${RESET}"
             sleep 1
             read -N1 -s key
 
@@ -511,7 +532,7 @@ function setup_wizard() {
             echo "  1) Yes!"
             echo "  2) No, let's repeat the test."
             echo "  3) No :(   Let's move on and I'll mess with the microphone later."
-            echo -n "Choice [1-3]: "
+            echo -n "${HIGHLIGHT}Choice [1-3]:${RESET} "
             while true; do
                 read -N1 -s key
                 case $key in
@@ -550,7 +571,7 @@ function setup_wizard() {
     echo "allow the system to automatically upgrade with the biweekly releases."
     echo "  1) Use the recommendations ('master' / auto-update)"
     echo "  2) I'm a core developer, put me on 'dev' and I'll manage updates"
-    echo -n "Choice [1-2]: "
+    echo -n "${HIGHLIGHT}Choice [1-2]:${RESET} "
     while true; do
         read -N1 -s key
         case $key in
@@ -585,7 +606,7 @@ function setup_wizard() {
     echo "setup or would you like to enable standard 'sudo' password behavior?"
     echo "  1) Stick with normal Raspian configuration, no password for 'sudo'"
     echo "  2) Require a password for 'sudo' actions."
-    echo -n "Choice [1-2]: "
+    echo -n "${HIGHLIGHT}Choice [1-2]:${RESET} "
     require_sudo=0
     while true; do
         read -N1 -s key
@@ -618,7 +639,7 @@ function setup_wizard() {
     echo "Would you like to enter a new password?"
     echo "  Y)es, prompt me for a new password"
     echo "  N)o, stick with the default password of 'mycroft'"
-    echo -n "Choice [Y,N]:"
+    echo -n "${HIGHLIGHT}Choice [Y,N]:${RESET}"
     while true; do
         read -N1 -s key
         case $key in
@@ -626,10 +647,10 @@ function setup_wizard() {
             echo "$key - changing password"
             user_pwd=0
             user_confirm=1
-            echo -n "Enter your new password (characters WILL NOT appear): "
+            echo -n "${HIGHLIGHT}Enter your new password (characters WILL NOT appear):${RESET} "
             read -s user_pwd
             echo
-            echo -n "Enter your new password again: "
+            echo -n "${HIGHLIGHT}Enter your new password again:${RESET} "
             read -s user_confirm
             echo
             if [ "$user_pwd" = "$user_confirm" ]
@@ -653,7 +674,7 @@ function setup_wizard() {
         echo "pi ALL=(ALL) ALL" | sudo tee /etc/sudoers.d/010_pi-nopasswd
     fi
 
-    if [ ! $skip_last_prompt ]; then
+    if [ "$skip_last_prompt" != true ]; then
         echo
         echo "========================================================================="
         echo
@@ -664,7 +685,7 @@ function setup_wizard() {
         echo
         echo "To rerun this setup, type 'mycroft-setup-wizard' and reboot."
         echo
-        echo "Press any key to launch Mycroft..."
+        echo "${HIGHLIGHT}Press any key to launch Mycroft...${RESET}"
         read -N1 -s anykey
     fi
 }
@@ -694,7 +715,7 @@ if ! ls /etc/ssh/ssh_host_* 1> /dev/null 2>&1; then
     sudo reboot
 fi
 
-echo -e "\e[36m"
+echo -e "${CYAN}"
 echo " ███╗   ███╗██╗   ██╗ ██████╗██████╗  ██████╗ ███████╗████████╗"
 echo " ████╗ ████║╚██╗ ██╔╝██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝"
 echo " ██╔████╔██║ ╚████╔╝ ██║     ██████╔╝██║   ██║█████╗     ██║   "
@@ -708,7 +729,7 @@ echo "       | |__) |  _    ___   _ __    ___   | |_  | |_ "
 echo "       |  ___/  | |  / __| | '__|  / _ \  |  _| | __|"
 echo "       | |      | | | (__  | |    | (_) | | |   | |_ "
 echo "       |_|      |_|  \___| |_|     \___/  |_|    \__|"
-echo -e "\e[0m"
+echo -e "${RESET}"
 echo
 
 # Read the current mycroft-core version
@@ -722,7 +743,6 @@ echo "**                       $mycroft_core_ver ( ${mycroft_core_branch/* /} )"
 echo "***********************************************************************"
 sleep 2  # give user a few moments to notice the version
 
-
 alias mycroft-setup-wizard="cd ~ && touch first_run && rm -f .setup_choices && rm -f .setup_stage && source auto_run.sh"
 
 if [ -f ~/first_run ]
@@ -735,7 +755,12 @@ then
         echo "Mycroft quick and easy.  Would you like help setting up your system?"
         echo "  Y)es, I'd like the guided setup."
         echo "  N)ope, just get me a command line and get out of my way!"
-        echo -n "Choice [Y/N]: "
+        
+        # Something in the boot sequence is sending a CR to the screen, so wait
+        # briefly for it to be sent for purely cosmetic purposes.
+        sleep 1
+
+        echo -n "${HIGHLIGHT}Choice [Y/N]:${RESET} "
         while true; do
             read -N1 -s key
             case $key in
@@ -750,6 +775,7 @@ then
              [Yy])
                 echo $key
                 echo
+                initial_setup=true
                 setup_wizard
                 break
                 ;;
@@ -757,7 +783,9 @@ then
         done
     else
         echo "Continuing setup..."
-        echo setup_wizard
+        echo
+        initial_setup=true
+        setup_wizard
     fi
 
    # Delete to flag setup is complete
@@ -767,6 +795,7 @@ fi
 # Special Matrix Voice Hat setup (multiple reboots required)
 if [ -f ~/.setup_matrix ]
 then
+    initial_setup=true
     if [ ! -f matrix_setup_state.txt ]
     then
         echo ""
@@ -796,7 +825,7 @@ then
         matrix_setup_state=$( cat matrix_setup_state.txt)
     fi
 
-    if [ $matrix_setup_state == "stage-1" ]
+    if [ $matrix_setup_state = "stage-1" ]
     then
         echo "Installing matrixio-kernel-modules..."
         sudo apt install matrixio-kernel-modules -y
@@ -807,7 +836,7 @@ then
         sudo reboot
     fi
 
-    if [ $matrix_setup_state == "stage-2" ]
+    if [ $matrix_setup_state = "stage-2" ]
     then
         echo "Setting Matrix as standard microphone..."
         echo "========================================================================="
@@ -821,10 +850,10 @@ then
 
         mycroft-mic-test
 
-        read -p "You should have heard the recording playback. Press enter to continue"
+        read -p "${HIGHLIGHT}You should have heard the recording playback. Press enter to continue.${RESET}"
 
         echo "========================================================================="
-        echo "Updating the python virtual environment"
+        echo "Updating the Python virtual environment"
         bash mycroft-core/dev_setup.sh
 
         echo "stage-3" > matrix_setup_state.txt
@@ -836,8 +865,7 @@ then
     rm ~/.setup_matrix
 fi
 
-
-if [ "$SSH_CLIENT" == "" ] && [ "$(/usr/bin/tty)" = "/dev/tty1" ];
+if [ "$SSH_CLIENT" = "" ] && [ "$(/usr/bin/tty)" = "/dev/tty1" ];
 then
     # running at the local console (e.g. plugged into the HDMI output)
 
@@ -846,7 +874,7 @@ then
     # the script will likely be overwritten during later updates.
     #
     # Default to analog audio jack at 75% volume
-    amixer cset numid=3 "1" > /dev/null
+    amixer cset numid=3 "1" > /dev/null 2>&1
     set_volume 75%
 
     # Check for custom audio setup
@@ -873,7 +901,7 @@ then
 
     # Auto-update to latest version of Picroft scripts and mycroft-core
     update_software
-
+    
     # Launch Mycroft Services ======================
     bash "$HOME/mycroft-core/start-mycroft.sh" all
 
@@ -882,8 +910,21 @@ then
     echo
     mycroft-help
     echo
-    echo "Mycroft is now running in the background."
-    echo "To show the Mycroft command line interface type:  mycroft-cli-client"
+    
+    if [ "$initial_setup" = true ]; then    
+        echo "Mycroft is completing startup, ensuring all of the latest versions"
+        echo "of skills are installed.  Within a few minutes you will be prompted" 
+        echo "to pair this device with the required online services at:"
+        echo "https://home.mycroft.ai"
+        echo "where you can enter the pairing code."
+        sleep 5
+        read -p "${HIGHLIGHT}Press enter to launch the Mycroft CLI client.${RESET}"
+        "$HOME/mycroft-core/start-mycroft.sh" cli
+    else
+        echo "Mycroft is now starting in the background."
+        echo "To show the Mycroft command line interface type:  mycroft-cli-client"
+    fi
+
 else
     # running in SSH session, auto-launch the CLI
     echo
