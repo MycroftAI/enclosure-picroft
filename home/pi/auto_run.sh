@@ -28,7 +28,10 @@
 
 if [ "$SSH_CLIENT" = "" ] && [ "$(/usr/bin/tty)" != "/dev/tty1" ]; then
     # Quit immediately when running on a local non-primary terminal,
-    # e.g. when you hit Ctrl+Alt+F2 to open the second term session
+    # e.g. when you hit Ctrl+Alt+F2 to open the second term session.
+    
+    # But go ahead an enter the Mycroft venv...
+    source mycroft-core/venv-activate.sh -q    
     return 0
 fi
 
@@ -904,6 +907,11 @@ then
     
     # Launch Mycroft Services ======================
     bash "$HOME/mycroft-core/start-mycroft.sh" all
+
+    # Start the Picroft enclosure service in the background
+    cd ~/enclosure
+    python3 PicroftEnclosure.py >> /var/log/mycroft/enclosure.log 2>&1 &
+    cd ..
 
     # Display success/welcome message for user
     echo
