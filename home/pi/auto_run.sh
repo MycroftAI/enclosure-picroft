@@ -276,10 +276,16 @@ function setup_wizard() {
         save_choices
     fi
 
-
-    # Check for/download new software (including mycroft-core dependencies, while we are at it).
-    echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
-    update_software
+    if [ -z "$setup_stage" ] ; then
+        # At the start of setup, install libraries and update to latest Picroft code
+    
+        # Install Python library  to interact with GPIO
+        sudo /home/pi/mycroft-core/.venv/bin/pip3 install RPi.GPIO
+    
+        # Check for/download new software (including mycroft-core dependencies, while we are at it).
+        echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
+        update_software
+    fi
 
     # installs Pulseaudio if not already installed
     if [ $(dpkg-query -W -f='${Status}' pulseaudio 2>/dev/null | grep -c "ok installed") -eq 0 ];
@@ -288,6 +294,10 @@ function setup_wizard() {
     fi
 
     if [ -z "$audio" ] ; then
+        # Start with the generic enclosure, create a soft link
+        cp /opt/mycroft/enclosure/templates/_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
+        ln -s /opt/mycroft/enclosure/my_enclosure.py ~/my_enclosure.py
+    
         echo
         echo "========================================================================="
         echo "HARDWARE SETUP"
@@ -368,6 +378,9 @@ function setup_wizard() {
 
                 # rebuild venv
                 bash mycroft-core/dev_setup.sh
+                
+                # install the AIY-specific enclosure
+                cp /opt/mycroft/enclosure/templates/AIY_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
 
                 echo "Reboot is required, restarting in 5 seconds..."
                 audio="google_aiy"
@@ -383,7 +396,7 @@ function setup_wizard() {
 
                 # Flash latest Seeed firmware
                 echo "Downloading and flashing latest firmware from Seeed..."
-                sudo /home/pi/mycroft-core/.venv/bin/pip install pyusb click
+                sudo /home/pi/mycroft-core/.venv/bin/pip3 install pyusb click
                 git clone https://github.com/respeaker/usb_4_mic_array.git
                 cd usb_4_mic_array
                 sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
@@ -394,6 +407,16 @@ function setup_wizard() {
                     -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:ArrayUAC10,0 %1/" \
                     -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:ArrayUAC10,0 %1/" \
                     /etc/mycroft/mycroft.conf
+                    
+                # Install the Python libraries  to control the ring for the enclosure
+                cd usb_4_mic_array
+                git clone https://github.com/respeaker/pixel_ring.git
+                cd pixel_ring
+                sudo /home/pi/mycroft-core/.venv/bin/pip3 install setuptools
+                sudo /home/pi/mycroft-core/.venv/bin/python setup.py install
+                
+                # Install the Seeed ReSpeaker-specific enclosure
+                cp /opt/mycroft/enclosure/templates/ReSpeaker_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
 
                 audio="seed_mic_array_20"
                 break
@@ -500,6 +523,9 @@ function setup_wizard() {
                     skip_mic_test=true
                     skip_last_prompt=true
                     mic="matrix_voice"
+                    
+                    # install the Matrix-specific enclosure
+                    cp /opt/mycroft/enclosure/templates/Matrix_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
                     break
                     ;;
                 4)
@@ -909,9 +935,9 @@ then
     bash "$HOME/mycroft-core/start-mycroft.sh" all
 
     # Start the Picroft enclosure service in the background
-    cd ~/enclosure
-    python3 PicroftEnclosure.py >> /var/log/mycroft/enclosure.log 2>&1 &
-    cd ..
+    cd /opt/mycroft/enclosure
+    sudo -- bash -c 'source /home/pi/mycroft-core/venv-activate.sh; python3 my_enclosure.py >> /var/log/mycroft/enclosure.log 2>&1 &'
+    cd ~
 
     # Display success/welcome message for user
     echo
