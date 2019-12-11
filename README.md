@@ -12,13 +12,13 @@ The entire project is available as a pre-built micro-SD image ready to be
 burned and placed into a Raspberry Pi. You can download the pre-built image
 here:
 
- [![Download img](./microsd-icon.png "Download img") Picroft Stable 2019-07-20 image](https://mycroft.ai/to/picroft-image)
+ [![Download img](./microsd-icon.png "Download img") Picroft Stable 2019-11-10 image](https://mycroft.ai/to/picroft-image)
 
-SHA-256: 6fe5ca091efa65899063793ecb1182c1e529dffb01ceea4b2283e6c75ccf5d10
+SHA-256: 58efe32bd1570d2fb39d1e4999c4ab70cbc10c470de1a4734794ee3648961760
 
-[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2019-10-16 image](https://mycroft.ai/to/picroft-unstable)
+[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2019-11-10 image](https://mycroft.ai/to/picroft-unstable)
 
-SHA-256: 6dd729d644058a992beacdd3d5b9e840fd22df4c7dafb4a2af03b4e8e9328f18
+SHA-256: 58efe32bd1570d2fb39d1e4999c4ab70cbc10c470de1a4734794ee3648961760
 
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
@@ -30,8 +30,7 @@ Optionally you can build it yourself by following the [Recipe for building the i
 * **Speaker**
   <br>Any analog speaker, or an HDMI monitor with speaker
 * **Microphone**
-  <br>Tested with: PlayStation Eye; Blue Snowball; Google AIY v1; Seeed Studio
-  Mic Array 2.0; Matrix Voice; Logitech Webcam Pro 9000, C525 and C270.
+  <br>A [list of Community tested hardware](https://mycroft-ai.gitbook.io/docs/using-mycroft-ai/get-mycroft/picroft#tested-hardware) is available in our documentation.
 * **2.5 Amp or better power supply**
   <br>Don't skimp on this!  It might appear to work, but you'll have weird
   issues with a cheapo supply.
