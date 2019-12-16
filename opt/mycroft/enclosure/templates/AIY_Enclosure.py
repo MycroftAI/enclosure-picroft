@@ -34,174 +34,25 @@
 #    cd ~/enclosure
 #    python ~/my_enclosure.py
 
-from mycroft.client.enclosure.generic import EnclosureGeneric
-from time import sleep
-import RPi.GPIO as GPIO
-import os, sys
-import threading
-from os.path import getmtime
+from lib.picroft_enclosure import Picroft_Enclosure
+import lib.file_watchdog as watchdog
+import lib.GPIO_Button
+import lib.GPIO_LED
 
-##########################################################################
-# Watchdog to reload this script upon modification of this file
-
-WATCHED_FILES = [__file__]  # Add other dependencies as desired, e.g. "my.json"
-WATCHED_FILES_MTIMES = [(f, getmtime(f)) for f in WATCHED_FILES]
-
-def checkForModification():
-    for f, mtime in WATCHED_FILES_MTIMES:
-        if getmtime(f) != mtime:
-            # Code modification detected, restarting!
-            os.execv(sys.executable, ['python'] + sys.argv)
-    threading.Timer(5, checkForModification).start()
-
-# Kick-off monitor checks every 5 seconds for code changes in this file
-checkForModification()
-
+watchdog.watch(__file__)
 
 ##########################################################################
 
-# BCM GPIO numbers
-GPIO_LED = 25
-GPIO_BUTTON = 23
-
-class AIY_Enclosure(EnclosureGeneric):
+class AIY_Enclosure(Picroft_Enclosure):
 
     def __init__(self):
         super().__init__()
 
-        # Administrative messages
-        self.bus.on("system.shutdown", self.on_shutdown)
-        self.bus.on("system.reboot", self.on_reboot)
-        self.bus.on("system.update", self.on_software_update)
+        # Support the standard AIY button
+        self.stop_button = lib.GPIO_Button(self.bus, GPIO_BCM=23)
 
-        # Interaction feedback
-        self.bus.on("recognizer_loop:wakeword", self.on_wakeword)
-        self.bus.on("recognizer_loop:record_begin", self.on_record_begin)
-        self.bus.on("recognizer_loop:record_end", self.on_record_end)
-        self.bus.on("recognizer_loop:sleep", self.on_sleep)
-        self.bus.on("recognizer_loop:wake_up", self.on_wake_up)
-        self.bus.on("recognizer_loop:audio_output_start", self.on_output_start)
-        self.bus.on("recognizer_loop:audio_output_end", self.on_output_end)
-        self.bus.on("mycroft.skill.handler.start", self.on_handler_start)
-        self.bus.on("mycroft.skill.handler.complete", self.on_handler_end)
-
-        # Visual indication that system is booting
-        self.bus.on("mycroft.skills.initialized", self.on_ready)
-
-        # Setup to support a button on a GPIO
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(GPIO_BUTTON, GPIO.IN)
-        GPIO.add_event_detect(GPIO_BUTTON, GPIO.BOTH, self.on_gpio_button)
-        
-        # Setup to support a LED on selected GPIO
-        GPIO.setup(GPIO_LED, GPIO.OUT)
-
-        self.asleep = False
-
-    def on_ready(self, message):
-        # Boot has completed, turn off booting visualization
-        GPIO.output(GPIO_LED, 0)
-
-    def on_sleep(self, message):
-        # Turn lights orange when asleep
-        GPIO.output(GPIO_LED, 0)
-        self.sleep = True
-
-    def on_wake_up(self, message):
-        GPIO.output(GPIO_LED, 1)
-        sleep(2)
-        GPIO.output(GPIO_LED, 0)
-        self.sleep = False
-
-    ######################################################################
-    # Interaction sequence indicators.  The trypical sequence is:
-    # - Wakeword heard
-    # - Recording begins
-    # - Recording ends
-    # - Handler starts
-    # - Output begins
-    # - Output ends
-    # - Handling ends
-    # There are variations on this, for example an inadvertant recording might never
-    # begin a handler sequence.  Or there might be multiple output begin/end pairs
-    # within the handler.
-
-    # Illuminate lights when listening
-    def on_wakeword(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 1)
-
-    def on_record_begin(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 1)
-
-    def on_record_end(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 0)
-
-    def on_handler_start(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 1)
-
-    def on_handler_end(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 0)
-
-    def on_output_start(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 1)
-
-    def on_output_end(self, message):
-        if self.sleep:
-            return
-        GPIO.output(GPIO_LED, 0)
-
-    ######################################################################
-    # Simple button support
-    #
-    # Wire a button between ground and the GPIO to create a "Stop" button, like
-    # on a Mycroft Mark 1.  The button can also initialize listening without
-    # speaking the wakeword.
-
-    def on_gpio_button(channel):
-        if GPIO.input(channel) == GPIO.HIGH:
-            # Stop Button pressed, similar to the Mark 1
-            self.bus.emit(Message("mycroft.stop"))
-        else:
-            # Button released
-            pass
-
-    ######################################################################
-    # Administrative actions
-    #
-    # Many of the following require root access, but can operate because
-    # this process is launched using sudo.
-
-    def on_software_update(self, message):
-        # Mycroft updates itself on reboots
-        self.speak("Updating system, please wait")
-        sleep(5)
-        os.system("cd /home/pi/mycroft-core && git pull")
-        sleep(2)
-
-        self.speak("Rebooting to apply update")
-        sleep(5)
-        os.system("shutdown --reboot now")
-
-    def on_shutdown(self, message):
-        os.system("shutdown --poweroff now")
-
-    def on_reboot(self, message):
-        # Example of using the self.speak() helper function
-        self.speak("I'll be right back")
-        sleep(5)
-        os.system("shutdown --reboot now")
+        # Support the standard AIY button's LED as an activity indicator
+        self.visual = lib.GPIO_LED(GPIO_BCM=25)
 
 
 enc = AIY_Enclosure()

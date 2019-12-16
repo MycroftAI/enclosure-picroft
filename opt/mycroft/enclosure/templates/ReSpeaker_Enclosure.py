@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 ##########################################################################
 # ReSpeaker_Enclosure.py
 #
@@ -21,7 +20,7 @@
 # This file defines a custom enclosure for your Picroft using a Seeed ReSpeaker
 # Mic Array.  By default it supports:
 #   * Animations on the pixel ring on the mic array
-#   * A button connected to the GPIO-17 as a "Stop"
+#   * A button connected to the GPIO-23 as a Stop button
 #   * Reboot and shutdown administrative actions
 #
 # Feel free to modify this code to your own purposes.  Changes will not be
@@ -29,184 +28,93 @@
 # the messagebus for system events, listens to GPIOs, and can do just about
 # anything you'd like.
 #
-# Changes made to the file will restart the enclosure process automatically
+# Changes to my_enclosure.py will restart the enclosure process automatically
 # but be careful -- syntax errors will require manual relaunching or reboot
-# after the error is fixed.  Relaunch manually via:
-#    cd ~/enclosure
-#    python ~/my_enclosure.py
+# after the error is fixed.
 
-
-from mycroft.client.enclosure.generic import EnclosureGeneric
+from lib.picroft_enclosure import Picroft_Enclosure
 from time import sleep
-import RPi.GPIO as GPIO
-import os, sys
-import threading
-from os.path import getmtime
 
-# The pixel_ring code is installed from Github
+# The pixel_ring code is installed from Github in the home directory
+import sys
 sys.path.insert(1, '/home/pi/usb_4_mic_array/pixel_ring')
 from pixel_ring import pixel_ring
 
-##########################################################################
-# Watchdog to reload this script upon modification of this file
-
-WATCHED_FILES = [__file__]  # Add other dependencies as desired, e.g. "my.json"
-WATCHED_FILES_MTIMES = [(f, getmtime(f)) for f in WATCHED_FILES]
-
-def checkForModification():
-    for f, mtime in WATCHED_FILES_MTIMES:
-        if getmtime(f) != mtime:
-            # Code modification detected, restarting!
-            os.execv(sys.executable, ['python'] + sys.argv)
-    threading.Timer(5, checkForModification).start()
-
-# Kick-off monitor checks every 5 seconds for code changes in this file
-checkForModification()
-
+import lib.file_watchdog as watchdog
+watchdog.watch(__file__)
 
 ##########################################################################
 
-
-class ReSpeaker_Enclosure(EnclosureGeneric):
+class ReSpeaker_Enclosure(Picroft_Enclosure):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(led_gpio_bcm=None)  # Pixel Ring is used to show state
+                                             # instead of a LED on a GPIO
 
-        # Administrative messages
-        self.bus.on("system.shutdown", self.on_shutdown)
-        self.bus.on("system.reboot", self.on_reboot)
-        self.bus.on("system.update", self.on_software_update)
-
-        # Interaction feedback
-        self.bus.on("recognizer_loop:wakeword", self.on_wakeword)
-        self.bus.on("recognizer_loop:record_begin", self.on_record_begin)
-        self.bus.on("recognizer_loop:record_end", self.on_record_end)
-        self.bus.on("recognizer_loop:sleep", self.on_sleep)
-        self.bus.on("recognizer_loop:wake_up", self.on_wake_up)
-        self.bus.on("recognizer_loop:audio_output_start", self.on_output_start)
-        self.bus.on("recognizer_loop:audio_output_end", self.on_output_end)
-        self.bus.on("mycroft.skill.handler.start", self.on_handler_start)
-        self.bus.on("mycroft.skill.handler.complete", self.on_handler_end)
-
+    def indicate_booting(self):
         # Visual indication that system is booting
         pixel_ring.set_brightness(2)
         pixel_ring.spin()
-        self.bus.on("mycroft.skills.initialized", self.on_ready)
 
-        # Setup to support a button on GPIO-17
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(17,GPIO.IN)
-        GPIO.add_event_detect(17,GPIO.BOTH, self.on_gpio_button)
-
-        self.asleep = False
-
-    def on_ready(self, message):
+    def indicate_booting_done(self, message):
         # Boot has completed, turn off booting visualization
         pixel_ring.off()
 
-    def on_sleep(self, message):
+    def indicate_sleeping(self, message):
         # Turn lights orange when asleep
         pixel_ring.set_color(False, 250, 60, 0)
-        self.sleep = True
+        self.asleep = True
 
-    def on_wake_up(self, message):
+    def indicate_waking(self, message):
+        # Restore lights when woken
         pixel_ring.spin()
         sleep(2)
         pixel_ring.off()
-        self.sleep = False
+        self.asleep = False
 
     ######################################################################
     # Interaction sequence indicators.  The trypical sequence is:
-    # - Wakeword heard
-    # - Recording begins
-    # - Recording ends
-    # - Handler starts
-    # - Output begins
-    # - Output ends
-    # - Handling ends
+    # - indicate_listening()
+    # - indicate_listening_done()
+    # - indicate_thinking()
+    # - indicate_talking()
+    # - indicate_talking_done()
+    # - indicate_thinking_done()
     # There are variations on this, for example an inadvertant recording might never
     # begin a handler sequence.  Or there might be multiple output begin/end pairs
     # within the handler.
 
     # Illuminate lights when listening
-    def on_wakeword(self, message):
-        if self.sleep:
+    def indicate_listening(self, message):
+        if self.asleep:
             return
         pixel_ring.listen()
 
-    def on_record_begin(self, message):
-        if self.sleep:
-            return
-        pixel_ring.listen()
-
-    def on_record_end(self, message):
-        if self.sleep:
+    def indicate_listening_done(self, message):
+        if self.asleep:
             return
         pixel_ring.off()
 
-    def on_handler_start(self, message):
-        if self.sleep:
+    def indicate_thinking(self, message):
+        if self.asleep:
             return
         pixel_ring.think()
 
-    def on_handler_end(self, message):
-        if self.sleep:
+    def indicate_thinking_done(self, message):
+        if self.asleep:
             return
         pixel_ring.off()
 
-    def on_output_start(self, message):
-        if self.sleep:
+    def indicate_talking(self, message):
+        if self.asleep:
             return
         pixel_ring.speak()
 
-    def on_output_end(self, message):
-        if self.sleep:
+    def indicate_talking_done(self, message):
+        if self.asleep:
             return
         pixel_ring.off()
 
-    ######################################################################
-    # Simple button support
-    #
-    # Wire a button between ground and GPIO-17 to create a "Stop" button, like
-    # on a Mycroft Mark 1.  The button can also initialize listening without
-    # speaking the wakeword.
 
-    def on_gpio_button(channel):
-        if GPIO.input(channel) == GPIO.HIGH:
-            # Stop Button pressed, similar to the Mark 1
-            self.bus.emit(Message("mycroft.stop"))
-        else:
-            # Button released
-            pass
-
-    ######################################################################
-    # Administrative actions
-    #
-    # Many of the following require root access, but can operate because
-    # this process is launched using sudo.
-
-    def on_software_update(self, message):
-        # Mycroft updates itself on reboots
-        self.speak("Updating system, please wait")
-        sleep(5)
-        os.system("cd /home/pi/mycroft-core && git pull")
-        sleep(2)
-
-        self.speak("Rebooting to apply update")
-        sleep(5)
-        os.system("shutdown --reboot now")
-
-    def on_shutdown(self, message):
-        os.system("shutdown --poweroff now")
-
-    def on_reboot(self, message):
-        # Example of using the self.speak() helper function
-        self.speak("I'll be right back")
-        sleep(5)
-        os.system("shutdown --reboot now")
-
-
-if __name__ == '__main__':
-    # Running as a script, not a module
-    enc = ReSpeaker_Enclosure()
-    enc.run()
+enc = ReSpeaker_Enclosure()
+enc.run()

@@ -29,9 +29,9 @@
 if [ "$SSH_CLIENT" = "" ] && [ "$(/usr/bin/tty)" != "/dev/tty1" ]; then
     # Quit immediately when running on a local non-primary terminal,
     # e.g. when you hit Ctrl+Alt+F2 to open the second term session.
-    
+
     # But go ahead an enter the Mycroft venv...
-    source mycroft-core/venv-activate.sh -q    
+    source mycroft-core/venv-activate.sh -q
     return 0
 fi
 
@@ -113,7 +113,7 @@ function network_setup() {
             echo "  3) Edit wpa_supplicant.conf directly"
             echo "  4) Force reboot"
             echo "  5) Skip network setup for now"
-            echo -n "${HIGHLIGHT}Choice [1-6]:${RESET} "
+            echo -n "${HIGHLIGHT}Choice [1-5]:${RESET} "
             show_prompt=0
         fi
 
@@ -278,10 +278,10 @@ function setup_wizard() {
 
     if [ -z "$setup_stage" ] ; then
         # At the start of setup, install libraries and update to latest Picroft code
-    
+
         # Install Python library  to interact with GPIO
         sudo /home/pi/mycroft-core/.venv/bin/pip3 install RPi.GPIO
-    
+
         # Check for/download new software (including mycroft-core dependencies, while we are at it).
         echo '{"use_branch":"master", "auto_update": true}' > ~/mycroft-core/.dev_opts.json
         update_software
@@ -295,9 +295,9 @@ function setup_wizard() {
 
     if [ -z "$audio" ] ; then
         # Start with the generic enclosure, create a soft link
-        cp /opt/mycroft/enclosure/templates/_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
+        cp /opt/mycroft/enclosure/templates/Generic_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py
         ln -s /opt/mycroft/enclosure/my_enclosure.py ~/my_enclosure.py
-    
+
         echo
         echo "========================================================================="
         echo "HARDWARE SETUP"
@@ -378,7 +378,7 @@ function setup_wizard() {
 
                 # rebuild venv
                 bash mycroft-core/dev_setup.sh
-                
+
                 # install the AIY-specific enclosure
                 cp /opt/mycroft/enclosure/templates/AIY_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
 
@@ -407,14 +407,14 @@ function setup_wizard() {
                     -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:ArrayUAC10,0 %1/" \
                     -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:ArrayUAC10,0 %1/" \
                     /etc/mycroft/mycroft.conf
-                    
+
                 # Install the Python libraries  to control the ring for the enclosure
                 cd usb_4_mic_array
                 git clone https://github.com/respeaker/pixel_ring.git
                 cd pixel_ring
                 sudo /home/pi/mycroft-core/.venv/bin/pip3 install setuptools
                 sudo /home/pi/mycroft-core/.venv/bin/python setup.py install
-                
+
                 # Install the Seeed ReSpeaker-specific enclosure
                 cp /opt/mycroft/enclosure/templates/ReSpeaker_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
 
@@ -523,7 +523,7 @@ function setup_wizard() {
                     skip_mic_test=true
                     skip_last_prompt=true
                     mic="matrix_voice"
-                    
+
                     # install the Matrix-specific enclosure
                     cp /opt/mycroft/enclosure/templates/Matrix_Enclosure.py /opt/mycroft/enclosure/my_enclosure.py 
                     break
@@ -784,7 +784,7 @@ then
         echo "Mycroft quick and easy.  Would you like help setting up your system?"
         echo "  Y)es, I'd like the guided setup."
         echo "  N)ope, just get me a command line and get out of my way!"
-        
+
         # Something in the boot sequence is sending a CR to the screen, so wait
         # briefly for it to be sent for purely cosmetic purposes.
         sleep 1
@@ -930,7 +930,7 @@ then
 
     # Auto-update to latest version of Picroft scripts and mycroft-core
     update_software
-    
+
     # Launch Mycroft Services ======================
     bash "$HOME/mycroft-core/start-mycroft.sh" all
 
@@ -944,10 +944,10 @@ then
     echo
     mycroft-help
     echo
-    
-    if [ "$initial_setup" = true ]; then    
+
+    if [ "$initial_setup" = true ]; then
         echo "Mycroft is completing startup, ensuring all of the latest versions"
-        echo "of skills are installed.  Within a few minutes you will be prompted" 
+        echo "of skills are installed.  Within a few minutes you will be prompted"
         echo "to pair this device with the required online services at:"
         echo "https://home.mycroft.ai"
         echo "where you can enter the pairing code."

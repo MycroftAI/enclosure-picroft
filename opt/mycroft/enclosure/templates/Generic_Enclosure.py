@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ##########################################################################
-# Matrix_Enclosure.sh
+# Generic_Enclosure.py
 #
 # Copyright 2019, Stephen Penrod
 #
@@ -17,10 +17,9 @@
 # limitations under the License.
 ##########################################################################
 
-# This file defines a simple custom enclosure for your Picroft.  By default
-# it supports:
-#   * A button connected to the GPIO-23 (and ground) as a Stop button
+# This file defines a basic enclosure for your Picroft. By default it supports:
 #   * LED activity light on GPIO-21
+#   * A button connected to the GPIO-23 (and ground) as a Stop button
 #   * Administrative actions such as reboot and shutdown
 #
 # Feel free to modify this code to your own purposes.  Changes will not be
@@ -28,26 +27,22 @@
 # the messagebus for system events, listens to GPIOs, and can do just about
 # anything you'd like.
 #
-# Changes made to the file will restart the enclosure process automatically
+# Changes to my_enclosure.py will restart the enclosure process automatically
 # but be careful -- syntax errors will require manual relaunching or reboot
-# after the error is fixed.  Relaunch manually via:
-#    cd ~/enclosure
-#    python ~/my_enclosure.py
+# after the error is fixed.
 
 from lib.picroft_enclosure import Picroft_Enclosure
-import lib.file_watchdog as watchdog
+from time import sleep
 
+import lib.file_watchdog as watchdog
 watchdog.watch(__file__)
 
 ##########################################################################
 
-class Matrix_Enclosure(Picroft_Enclosure):
+class Generic_Enclosure(Picroft_Enclosure):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(button_gpio_bcm=23, led_gpio_bcm=21)
 
-    # TODO: Use the Matrix light array to indicate status
-
-
-enc = Matrix_Enclosure()
+enc = Generic_Enclosure()
 enc.run()
