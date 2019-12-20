@@ -82,11 +82,16 @@ There is an active *Picroft* community within the [Mycroft's Mattermost chat](ht
 
 ### FAQ
 ##### Q1) Why "Buster Keaton (Pork Pi)"?
+This image is built on top of Raspbian "Buster" for running on a Raspberry Pi. 
 
-This is built on top of Raspbian "Buster" for running on a Pi.  The photo at the
-top of this page is of Buster Keaton wearing his signature hat, known as a
-Pork Pie hat.  Coincidentally, Buster Keaton's classic film "Safety Last!"
+[Buster Keaton](https://en.wikipedia.org/wiki/Buster_Keaton) is best known 
+for his silent films, but also his signature Pork Pie hats that he designed 
+and made himself. Coincidentally, Buster Keaton's classic film "Safety Last!" 
 came out of copyright in 2019.
+
+The photo at the top of this page we thought was Buster Keaton wearing his 
+signature hat. It turns out that it is actually a slightly more contemporary 
+[Harold Lloyd](https://en.wikipedia.org/wiki/Harold_Lloyd).
 
 ##### Q2) Can I run this with a the Raspbian desktop GUI?
 Sadly, not really.  A Raspberry Pi is powerful, but still not well suited to do
