@@ -225,7 +225,7 @@ function update_software() {
             if  [ $? -eq 1 ]
             then
                 # Versions don't match...update needed
-                echo "**** Update found, downloadling new Picroft scripts!"
+                echo "**** Update found, downloading new Picroft scripts!"
                 speak "Updating Picroft, please hold on."
 
                 wget -N -q https://raw.githubusercontent.com/MycroftAI/enclosure-picroft/buster/home/pi/update.sh
