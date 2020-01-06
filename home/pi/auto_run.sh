@@ -251,6 +251,7 @@ function update_software() {
         git fetch
         if [ $(git rev-parse HEAD) != $(git rev-parse @{u}) ] ; then
             git pull
+            sudo apt-get -o Acquire::ForceIPv4=true update -y
             bash dev_setup.sh
         fi
         cd ~
