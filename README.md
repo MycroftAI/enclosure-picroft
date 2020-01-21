@@ -12,13 +12,13 @@ The entire project is available as a pre-built micro-SD image ready to be
 burned and placed into a Raspberry Pi. You can download the pre-built image
 here:
 
- [![Download img](./microsd-icon.png "Download img") Picroft Stable 2019-11-10 image](https://mycroft.ai/to/picroft-image)
+ [![Download img](./microsd-icon.png "Download img") Picroft Stable 2020-01-10 image](https://mycroft.ai/to/picroft-image)
 
-SHA-256: 58efe32bd1570d2fb39d1e4999c4ab70cbc10c470de1a4734794ee3648961760
+SHA-256: 9cd9ec16388d72dfc6069bc7ea62d1b73e944df103571f48c88a49ec09f5f6d4
 
-[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2019-11-10 image](https://mycroft.ai/to/picroft-unstable)
+[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2020-01-10 image](https://mycroft.ai/to/picroft-unstable)
 
-SHA-256: 58efe32bd1570d2fb39d1e4999c4ab70cbc10c470de1a4734794ee3648961760
+SHA-256: 9cd9ec16388d72dfc6069bc7ea62d1b73e944df103571f48c88a49ec09f5f6d4
 
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
