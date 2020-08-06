@@ -82,6 +82,7 @@ then
     echo "Retrieving default skills"
     sudo mkdir -p /opt/mycroft
     sudo chown pi:pi /opt/mycroft
+    mkdir -p ~/.mycroft
     ~/mycroft-core/bin/mycroft-msm default
 
     wget -N $REPO_PATH/home/pi/audio_setup.sh
