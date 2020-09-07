@@ -1,7 +1,7 @@
 # It's Alive!
 ![Safety Last!](./buster-keaton-safety-last.jpg)
 
-## Picroft - 2019-10-15 Buster Keaton (Pork Pi) release
+## Picroft - Buster Keaton (Pork Pi) release
 
 Picroft is an enclosure for a Raspberry Pi 3, 3B+ or 4 connected to a speaker and
 microphone, bringing Mycroft to anyone who wants a simple voice interface they
@@ -16,9 +16,9 @@ here:
 
 SHA-256: 9cd9ec16388d72dfc6069bc7ea62d1b73e944df103571f48c88a49ec09f5f6d4
 
-[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2020-01-10 image](https://mycroft.ai/to/picroft-unstable)
+[![Download img](./microsd-icon.png "Download img") Picroft Unstable 2020-09-07 image](https://mycroft.ai/to/picroft-unstable)
 
-SHA-256: 9cd9ec16388d72dfc6069bc7ea62d1b73e944df103571f48c88a49ec09f5f6d4
+SHA-256: 3d3c99c53793224b84de02e816435230f2bbe6272b71d8909afee43e5ef9a402
 
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
