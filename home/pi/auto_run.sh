@@ -815,6 +815,7 @@ then
         # add repo
         curl https://apt.matrix.one/doc/apt-key.gpg | sudo apt-key add -
         echo "deb https://apt.matrix.one/raspbian $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/matrixlabs.list
+        sudo update-ca-certificates
         sudo apt-get -o Acquire::ForceIPv4=true update -y
         sudo apt-get -o Acquire::ForceIPv4=true upgrade -y
 
