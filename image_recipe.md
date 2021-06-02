@@ -127,6 +127,6 @@ When asked by dev_setup, answer as follows:
 ## Final steps
 * Run ```. ~/bin/mycroft-wipe --keep-skills```
 * Remove the SD card
-* Create an IMG file named "raspbian-buster_Picroft_YYYY-MM-DD.img" (optionally include an "_release-suffix.img")
+* Create an IMG file named `"Picroft_v${CORE_VERSION}_${YYYYMMDD}.img"` (optionally include a release candidate suffix `"_rc-${num}.img"`)
 * Compress the IMG using pishrink.sh
-* Upload and adjust redirect link from https://mycroft.ai/to/picroft-image or https://mycroft.ai/to/picroft-unstable
+* Upload to downloads.mycroft.ai and adjust redirect link from https://mycroft.ai/to/picroft-image or https://mycroft.ai/to/picroft-unstable
