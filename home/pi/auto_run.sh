@@ -691,12 +691,7 @@ function setup_wizard() {
 
 function speak() {
     # Generate TTS audio using Mimic 1
-    ~/mycroft-core/mimic/bin/mimic -t $@ -o /tmp/speak.wav
-
-    # Play the audio using the configured WAV output mechanism
-    wavcmd=$( jq -r ".play_wav_cmdline" /etc/mycroft/mycroft.conf )
-    wavcmd="${wavcmd/\%1/\/tmp\/speak.wav}"
-    $( $wavcmd >/dev/null 2>&1 )
+    ~/mycroft-core/mimic/bin/mimic -t $@
 }
 
 ######################
