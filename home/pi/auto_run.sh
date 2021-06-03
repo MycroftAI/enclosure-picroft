@@ -313,7 +313,7 @@ function setup_wizard() {
              3)
                 echo "$key - USB audio"
                 # audio out to the USB soundcard
-                echo "Select your soundcard"
+                echo "Select your output device"
                 pactl list sinks short | awk '{printf("  %d) %s\n", NR, $2)}'
                 echo -n "${HIGHLIGHT}Choice:${RESET} "
                 read -N1 -s card_num
@@ -493,10 +493,17 @@ function setup_wizard() {
                     ;;
                 4)
                     echo "$key - Other"
-                    echo "Other microphone _might_ work, but there are no guarantees."
+                    echo "Other microphones _might_ work, but there are no guarantees."
                     echo "We'll run the tests, but you are on your own.  If you have"
                     echo "issues, the most likely cause is an incompatible microphone."
                     echo "The PS Eye is cheap -- save yourself hassle and just buy one!"
+                    echo ""
+                    echo "Select your input device"
+                    pactl list sources short | awk '{printf("  %d) %s\n", NR, $2)}'
+                    echo -n "${HIGHLIGHT}Choice:${RESET} "
+                    read -N1 -s card_num
+                    card_name=$(pactl list sources short | awk '{print$2}' | sed -n ${card_num}p)
+                    pactl set-default-source ${card_name}
                     mic="other"
                     break
                     ;;
