@@ -300,6 +300,7 @@ function setup_wizard() {
                 echo "$key - Analog audio"
                 # audio out the analog speaker/headphone jack
                 pactl set-default-sink alsa_output.platform-bcm2835_audio.analog-stereo
+                echo 'pactl set-default-sink alsa_output.platform-bcm2835_audio.analog-stereo' >> ~/audio_setup.sh
                 audio="analog_audio"
                 break
                 ;;
@@ -307,6 +308,7 @@ function setup_wizard() {
                 echo "$key - HDMI audio"
                 # audio out the HDMI port (e.g. TV speakers)
                 pactl set-default-sink alsa_output.platform-bcm2835_audio.digital-stereo
+                echo 'pactl set-default-sink alsa_output.platform-bcm2835_audio.digital-stereo' >> ~/audio_setup.sh
                 audio="hdmi_audio"
                 break
                 ;;
@@ -319,6 +321,7 @@ function setup_wizard() {
                 read -N1 -s card_num
                 card_name=$(pactl list sinks short | awk '{print$2}' | sed -n ${card_num}p)
                 pactl set-default-sink ${card_name}
+                echo 'pactl set-default-sink ${card_name}' >> ~/audio_setup.sh
                 audio="usb_audio"
                 break
                 ;;
@@ -383,6 +386,8 @@ function setup_wizard() {
                 # Configure PulseAudio to use Seeed device
                 pactl set-default-source alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-mono
                 pactl set-default-sink alsa_output.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-stereo
+                echo 'pactl set-default-source alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-mono' >> ~/audio_setup.sh
+                echo 'pactl set-default-sink alsa_output.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-stereo' >> ~/audio_setup.sh
 
                 audio="seed_mic_array_20"
                 break
@@ -504,6 +509,7 @@ function setup_wizard() {
                     read -N1 -s card_num
                     card_name=$(pactl list sources short | awk '{print$2}' | sed -n ${card_num}p)
                     pactl set-default-source ${card_name}
+                    echo 'pactl set-default-source ${card_name}' >> ~/audio_setup.sh
                     mic="other"
                     break
                     ;;
