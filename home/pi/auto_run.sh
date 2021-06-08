@@ -744,8 +744,6 @@ echo "**                       $mycroft_core_ver ( ${mycroft_core_branch/* /} )"
 echo "***********************************************************************"
 sleep 2  # give user a few moments to notice the version
 
-alias mycroft-setup-wizard="cd ~ && touch first_run && rm -f .setup_choices && rm -f .setup_stage && source auto_run.sh"
-
 if [ -f ~/first_run ]
 then
     $(bash "$HOME/mycroft-core/stop-mycroft.sh" all > /dev/null)

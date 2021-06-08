@@ -1,0 +1,5 @@
+cd $HOME 
+touch first_run
+rm -f .setup_choices
+rm -f .setup_stage
+source auto_run.sh
