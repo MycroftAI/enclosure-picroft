@@ -338,9 +338,7 @@ function setup_wizard() {
 
                 sudo apt-get -y install aiy-dkms aiy-io-mcu-firmware aiy-vision-firmware dkms raspberrypi-kernel-headers
                 sudo apt-get -y install aiy-dkms aiy-voicebonnet-soundcard-dkms aiy-voicebonnet-routes
-                # At this time, 12/17/2018, installing aiy-python-wheels breaks the install
-                # https://community.mycroft.ai/t/setting-up-aiy-python-wheels-protobuf-not-supported-on-armv6-1/5130/2
-                # sudo apt-get install -y aiy-python-wheels
+                sudo apt-get -y install aiy-python-wheels
                 sudo apt-get -y install leds-ktd202x-dkms
 
                 # make soundcard recognizable
