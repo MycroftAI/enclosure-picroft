@@ -20,6 +20,8 @@ SHA-256: 3d3c99c53793224b84de02e816435230f2bbe6272b71d8909afee43e5ef9a402
 
 SHA-256: 2d5a81375036a1dc4ce30051ea9e9181f4019c8f61264db3a43d87d03df854a6
 
+A list of current and past releases can be found at: https://downloads.mycroft.ai/releases/picroft/
+
 Optionally you can build it yourself by following the [Recipe for building the image](image_recipe.md)
 
 ## Requirements
