@@ -321,7 +321,7 @@ function setup_wizard() {
                 read -N1 -s card_num
                 card_name=$(pactl list sinks short | awk '{print$2}' | sed -n ${card_num}p)
                 pactl set-default-sink ${card_name}
-                echo 'pactl set-default-sink ${card_name}' >> ~/audio_setup.sh
+                echo "pactl set-default-sink ${card_name}" >> ~/audio_setup.sh
                 audio="usb_audio"
                 break
                 ;;
@@ -509,7 +509,7 @@ function setup_wizard() {
                     read -N1 -s card_num
                     card_name=$(pactl list sources short | awk '{print$2}' | sed -n ${card_num}p)
                     pactl set-default-source ${card_name}
-                    echo 'pactl set-default-source ${card_name}' >> ~/audio_setup.sh
+                    echo "pactl set-default-source ${card_name}" >> ~/audio_setup.sh
                     mic="other"
                     break
                     ;;
