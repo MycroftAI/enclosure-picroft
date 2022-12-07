@@ -88,7 +88,8 @@ This image is built on top of Raspbian "Buster" for running on a Raspberry Pi.
 
 [Buster Keaton](https://en.wikipedia.org/wiki/Buster_Keaton) is best known 
 for his silent films, but also his signature Pork Pie hats that he designed 
-and made himself. Coincidentally, Buster Keaton's classic film "Safety Last!" 
+and made himself. Coincidentally, Buster Keaton's classic film
+"[Safety Last!](https://www.youtube.com/watch?v=V-XZWZVVhvQ&ab_channel=moosetash)" 
 came out of copyright in 2019.
 
 The photo at the top of this page we thought was Buster Keaton wearing his 
