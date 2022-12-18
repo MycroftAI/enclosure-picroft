@@ -74,18 +74,15 @@ function save_choices() {
 }
 
 function set_volume() {
-    # Use amixer to set the volume level
-    # This attempts to set both "Master" and "PCM"
+    # Use PulseAudio to set the volume level
 
-    amixer set PCM $@ > /dev/null 2>&1
-    amixer set Master $@ > /dev/null 2>&1
+    pactl set-sink-volume @DEFAULT_SINK@ $@
 }
 
 function save_volume() {
-    # Save command to amixer to set the volume level
+    # Save PulseAudio volume command to set the default volume level
 
-    echo "amixer set PCM $@ > /dev/null 2>&1" >> ~/audio_setup.sh
-    echo "amixer set Master $@ > /dev/null 2>&1" >> ~/audio_setup.sh
+    echo "pactl set-sink-volume @DEFAULT_SINK@ $@" >> ~/audio_setup.sh
 }
 
 function network_setup() {
@@ -302,24 +299,29 @@ function setup_wizard() {
              1)
                 echo "$key - Analog audio"
                 # audio out the analog speaker/headphone jack
-                sudo amixer cset numid=3 "1" > /dev/null 2>&1
-                echo 'sudo amixer cset numid=3 "1" > /dev/null 2>&1' >> ~/audio_setup.sh
+                pactl set-default-sink alsa_output.platform-bcm2835_audio.analog-stereo
+                echo 'pactl set-default-sink alsa_output.platform-bcm2835_audio.analog-stereo' >> ~/audio_setup.sh
                 audio="analog_audio"
                 break
                 ;;
              2)
                 echo "$key - HDMI audio"
                 # audio out the HDMI port (e.g. TV speakers)
-                sudo amixer cset numid=3 "2" > /dev/null 2>&1
-                echo 'sudo amixer cset numid=3 "2"  > /dev/null 2>&1' >> ~/audio_setup.sh
+                pactl set-default-sink alsa_output.platform-bcm2835_audio.digital-stereo
+                echo 'pactl set-default-sink alsa_output.platform-bcm2835_audio.digital-stereo' >> ~/audio_setup.sh
                 audio="hdmi_audio"
                 break
                 ;;
              3)
                 echo "$key - USB audio"
                 # audio out to the USB soundcard
-                sudo amixer cset numid=3 "0" > /dev/null 2>&1
-                echo 'sudo amixer cset numid=3 "0"  > /dev/null 2>&1' >> ~/audio_setup.sh
+                echo "Select your output device"
+                pactl list sinks short | awk '{printf("  %d) %s\n", NR, $2)}'
+                echo -n "${HIGHLIGHT}Choice:${RESET} "
+                read -N1 -s card_num
+                card_name=$(pactl list sinks short | awk '{print$2}' | sed -n ${card_num}p)
+                pactl set-default-sink ${card_name}
+                echo "pactl set-default-sink ${card_name}" >> ~/audio_setup.sh
                 audio="usb_audio"
                 break
                 ;;
@@ -355,12 +357,6 @@ function setup_wizard() {
                 # See: https://github.com/google/aiyprojects-raspbian/issues/297
                 sudo sed -i -e "s/^load-module module-suspend-on-idle/#load-module module-suspend-on-idle/" /etc/pulse/default.pa
 
-                # Changes mycroft.conf to use the default output device
-                sudo sed -i \
-                    -e "s/aplay -Dhw:0,0 %1/aplay %1/" \
-                    -e "s/mpg123 -a hw:0,0 %1/mpg123 %1/" \
-                    /etc/mycroft/mycroft.conf
-
                 # Install asound.conf
                 sudo cp AIY-asound.conf /etc/asound.conf
 
@@ -387,11 +383,11 @@ function setup_wizard() {
                 sudo /home/pi/mycroft-core/.venv/bin/python dfu.py --download 1_channel_firmware.bin
                 cd ..
 
-                # Configure Mycroft to use plughw:ArrayUAC10,0 (Seeed device)
-                sudo sed -i \
-                    -e "s/aplay -Dhw:0,0 %1/aplay -Dplughw:ArrayUAC10,0 %1/" \
-                    -e "s/mpg123 -a hw:0,0 %1/mpg123 -a plughw:ArrayUAC10,0 %1/" \
-                    /etc/mycroft/mycroft.conf
+                # Configure PulseAudio to use Seeed device
+                pactl set-default-source alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-mono
+                pactl set-default-sink alsa_output.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-stereo
+                echo 'pactl set-default-source alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-mono' >> ~/audio_setup.sh
+                echo 'pactl set-default-sink alsa_output.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.analog-stereo' >> ~/audio_setup.sh
 
                 audio="seed_mic_array_20"
                 break
@@ -502,10 +498,18 @@ function setup_wizard() {
                     ;;
                 4)
                     echo "$key - Other"
-                    echo "Other microphone _might_ work, but there are no guarantees."
+                    echo "Other microphones _might_ work, but there are no guarantees."
                     echo "We'll run the tests, but you are on your own.  If you have"
                     echo "issues, the most likely cause is an incompatible microphone."
                     echo "The PS Eye is cheap -- save yourself hassle and just buy one!"
+                    echo ""
+                    echo "Select your input device"
+                    pactl list sources short | awk '{printf("  %d) %s\n", NR, $2)}'
+                    echo -n "${HIGHLIGHT}Choice:${RESET} "
+                    read -N1 -s card_num
+                    card_name=$(pactl list sources short | awk '{print$2}' | sed -n ${card_num}p)
+                    pactl set-default-source ${card_name}
+                    echo "pactl set-default-source ${card_name}" >> ~/audio_setup.sh
                     mic="other"
                     break
                     ;;
@@ -693,12 +697,7 @@ function setup_wizard() {
 
 function speak() {
     # Generate TTS audio using Mimic 1
-    ~/mycroft-core/mimic/bin/mimic -t $@ -o /tmp/speak.wav
-
-    # Play the audio using the configured WAV output mechanism
-    wavcmd=$( jq -r ".play_wav_cmdline" /etc/mycroft/mycroft.conf )
-    wavcmd="${wavcmd/\%1/\/tmp\/speak.wav}"
-    $( $wavcmd >/dev/null 2>&1 )
+    ~/mycroft-core/mimic/bin/mimic -t $@
 }
 
 ######################
@@ -874,7 +873,7 @@ then
     # the script will likely be overwritten during later updates.
     #
     # Default to analog audio jack at 75% volume
-    amixer cset numid=3 "1" > /dev/null 2>&1
+    pactl set-default-sink alsa_output.platform-bcm2835_audio.analog-stereo
     set_volume 75%
 
     # Check for custom audio setup
